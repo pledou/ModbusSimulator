@@ -1,0 +1,37 @@
+{
+  "$schema": "../../schemas/schema_appconfig.json",
+  "name": "Serial Slave ASCII Mode",
+  "device_id": "SLAVE_SERIAL_ASCII",
+  "slave": {
+    "type": "serial-ascii",
+    "serialPortOptions": {
+      "path": "/dev/ttyUSB0",
+      "baudRate": 19200,
+      "dataBits": 7,
+      "stopBits": 1,
+      "parity": "even",
+      "xon": true,
+      "xoff": true,
+      "rtscts": false
+    },
+    "delay": 50,
+    "data": {
+      "DI": {
+        "DI-01": {
+          "label": "ASCII Serial Input",
+          "default": false
+        }
+      },
+      "AI": {
+        "AI-01": {
+          "label": "ASCII Serial Register",
+          "type": "integer",
+          "address": 100,
+          "register": "UInt16BE"
+        }
+      }
+    }
+  },
+  "mqtt": {}
+}
+

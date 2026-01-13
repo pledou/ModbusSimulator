@@ -1,0 +1,118 @@
+{
+  "$schema": "../../schemas/schema_data.json",
+  "DI": {
+    "Emergency_Stop": {
+      "label": "Emergency Stop Button",
+      "default": false
+    },
+    "Power_Supply_OK": {
+      "label": "Power Supply Status",
+      "default": true
+    },
+    "System_Ready": {
+      "label": "System Ready",
+      "default": true
+    },
+    "Fault_Active": {
+      "label": "Fault Active",
+      "default": false
+    },
+    "Door_Closed": {
+      "label": "Safety Door Closed",
+      "default": true
+    }
+  },
+  "DO": {
+    "Pump_Enable": {
+      "label": "Pump Enable Output",
+      "default": false
+    },
+    "Motor_Run": {
+      "label": "Motor Run Output",
+      "default": false
+    },
+    "Heater_On": {
+      "label": "Heater On Output",
+      "default": false
+    },
+    "Alarm_Light": {
+      "label": "Alarm Light Output",
+      "default": false
+    }
+  },
+  "AI": {
+    "Line_Pressure": {
+      "label": "Line Pressure",
+      "type": "float",
+      "address": 100,
+      "register": "FloatBE",
+      "default": 0.0
+    },
+    "Fluid_Temperature": {
+      "label": "Fluid Temperature",
+      "type": "integer",
+      "address": 101,
+      "register": "Int16BE",
+      "default": 20
+    },
+    "Flow_Rate": {
+      "label": "Flow Rate",
+      "type": "float",
+      "address": 102,
+      "register": "FloatBE",
+      "default": 0.0
+    },
+    "Motor_Speed": {
+      "label": "Motor Speed RPM",
+      "type": "integer",
+      "address": 103,
+      "register": "UInt16BE",
+      "default": 0
+    },
+    "Power_Consumption": {
+      "label": "Power Consumption",
+      "type": "float",
+      "address": 104,
+      "register": "FloatBE",
+      "default": 0.0
+    }
+  },
+  "AO": {
+    "AO-1000-00": {
+      "label": "Pump Mode Bit 0",
+      "type": "boolean",
+      "address": 1000,
+      "offset": 0,
+      "default": false
+    },
+    "AO-1000-01": {
+      "label": "Pump Mode Bit 1",
+      "type": "boolean",
+      "address": 1000,
+      "offset": 1,
+      "default": false
+    },
+    "AO-1001": {
+      "label": "Speed Setpoint",
+      "type": "integer",
+      "address": 1001,
+      "register": "UInt16BE",
+      "default": 500
+    },
+    "AO-1002": {
+      "label": "Temperature Setpoint",
+      "type": "integer",
+      "address": 1002,
+      "register": "Int16BE",
+      "default": 40
+    },
+    "AO-1003": {
+      "label": "Pressure Limit",
+      "type": "float",
+      "address": 1003,
+      "register": "FloatBE",
+      "default": 10.0
+    }
+  }
+}
+

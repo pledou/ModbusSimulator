@@ -1,0 +1,18 @@
+{
+  "$schema": "../../schemas/schema_data.json",
+  "digitals": {
+    "DI-02": {
+      "label": "Sensor A",
+      "default": true
+    },
+    "DI-03": {
+      "label": "Sensor B",
+      "default": false
+    },
+    "DI-04": {
+      "label": "Sensor C",
+      "default": true
+    }
+  }
+}
+

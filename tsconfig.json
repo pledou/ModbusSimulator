@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+        "module": "nodenext",
+        "noImplicitAny": false,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "sourceMap": true,
+        "allowJs": true,
+        "checkJs": false,
+        "moduleResolution": "nodenext",
+        "baseUrl": "./",
+        "outDir": "./dist", // Specify output directory
+        "paths": {
+            "json-ref-lite": ["node_modules/json-ref-lite"],
+            "json5": ["node_modules/json5"]
+        }
+    },
+    "include": [
+        "test/*",
+        "*"
+, "test/unit/master_config.test.ts"    ],
+    "typeRoots": [
+        "node_modules/@types"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "../../schemas/schema_data.json",
+  "DI": {
+    "System_Status": {
+      "label": "System Status",
+      "default": true,
+      "address": 0
+    },
+    "Error_Flag": {
+      "label": "Error Flag",
+      "default": false,
+      "address": 1
+    },
+    "$ref": "./inputs_device_sensors.json#digitals"
+  },
+  "AO": {
+    "$ref": "./inputs_device_registers.json#/registers"
+  }
+}
+

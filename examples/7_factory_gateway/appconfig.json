@@ -1,0 +1,90 @@
+{
+  "$schema": "../../schemas/schema_appconfig.json",
+  "name": "Factory PLC Master/Slave Gateway",
+  "device_id": "FACTORY_PLC_01",
+  "debug": false,
+  "stats": true,
+  "slave": {
+    "type": "tcp",
+    "serverOptions": {
+      "host": "0.0.0.0",
+      "port": 502
+    },
+    "delay": 0,
+    "addressingoffset": 0,
+    "script": "slave_config.js",
+    "data": {
+      "$ref": "./inputs_factory_slave.json"
+    }
+  },
+  "master": {
+    "type": "tcp",
+    "socketOptions": {
+      "host": "192.168.1.50",
+      "port": 502
+    },
+    "unit_id": 1,
+    "interval": 1000,
+    "timeout": 2000,
+    "concurrent_transactions": 10,
+    "debug": false,
+    "script": "../../master_config.js",
+    "requests": [
+      {
+        "label": "SCADA System Read",
+        "interval": 500,
+        "data": {
+          "AI": {
+            "Line_Pressure": {
+              "label": "Line Pressure",
+              "type": "float",
+              "address": 100,
+              "register": "FloatBE"
+            },
+            "Fluid_Temperature": {
+              "label": "Fluid Temperature",
+              "type": "integer",
+              "address": 101,
+              "register": "Int16BE"
+            }
+          }
+        }
+      },
+      {
+        "label": "Equipment Control",
+        "interval": 1000,
+        "ModbusRequestType": "readwrite",
+        "data": {
+          "AO": {
+            "AO-1001": {
+              "label": "Speed Setpoint",
+              "type": "integer",
+              "address": 1001,
+              "register": "UInt16BE"
+            }
+          }
+        },
+        "writedata": {
+          "AO": {
+            "AO-Control": {
+              "label": "Control Command",
+              "type": "boolean",
+              "address": 1050,
+              "offset": 0
+            }
+          }
+        }
+      }
+    ]
+  },
+  "mqtt": {
+    "host": "mqtt.factory.local",
+    "port": 1883,
+    "base_topic": "factory/plc/",
+    "auth": true,
+    "username": "plc_service",
+    "password": "factory_secure_123",
+    "debug": false
+  }
+}
+

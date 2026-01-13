@@ -1,0 +1,55 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "./schema_data.json",
+    "title": "ModbusSimulator 0.1.1 Data",
+    "description": "ModbusSimulator data definition",
+    "patternProperties": {
+        "^DI(#[0-9]*)?$": {
+            "title": "Digitals Inputs",
+            "description": "define digitals inputs advertised through mqtt",
+            "$ref": "./schema_coils.json"
+        },
+        "^DO(#[0-9]*)?$": {
+            "title": "Coils",
+            "description": "define coils advertised through mqtt",
+            "$ref": "./schema_coils.json"
+        },
+        "^AI(#[0-9]*)?$": {
+            "title": "Input Registers",
+            "description": "define input registers advertised through mqtt",
+            "$ref": "./schema_registers.json"
+        },
+        "^AO(#[0-9]*)?$": {
+            "title": "Holding Registers",
+            "description": "define holding registers advertised through mqtt",
+            "$ref": "./schema_registers.json"
+        }
+    },
+    "properties": {
+        "$ref": {
+        "title": "Reference",
+        "description": "Reference to an other element in document or to an other document",
+        "type":"string",
+        "examples": ["#/data/registers","#/data/request1", "./inputs_equipement.json"],
+        "pattern": "^(#/[A-Za-z0-9/_\\.]+|\\./[A-Za-z0-9/_\\.]+\\.json)$"
+        },
+        "$schema":{
+            "title": "Schema",
+            "description": "Schema if defined must refer to schema_data.json",
+            "examples": ["./Release/schema_data.json"],
+            "type":"string",
+            "pattern": "^[A-Za-z0-9\/\\.]+schema_data.json$"
+        },
+        "registers":{
+            "title": "Registers definition",
+            "description": "Only use in reference file because it's not recognized by app",
+            "$ref": "./schema_registers.json"
+        },
+        "digitals": {
+            "title": "Coils definition",
+            "description": "Only use in reference file because it's not recognized by app",
+            "$ref": "./schema_coils.json"
+        }
+    },
+    "additionalProperties": false
+}

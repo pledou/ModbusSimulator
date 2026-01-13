@@ -1,0 +1,5 @@
+/.e2e
+/node_modules
+/package-lock.json
+/Test_End2End
+/todo

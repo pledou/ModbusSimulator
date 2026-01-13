@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "./schema_registers.json",
+  "title": "ModbusSimulator 0.1.1 Registers",
+  "description": "ModbusSimulator registers definition",
+  "patternProperties": {
+    "^(AI|AO)(-[0-9]*)?$": {
+      "title": "MQTT property with address defined in the name",
+      "description": "Address may be read by following 'AI-' or 'AO-' by numbers without spaces",
+      "required": ["label","type"],
+      "$ref": "#/definitions/register"
+    },
+    "^[a-zA-Z0-9\\-_]*$": { "title": "MQTT property", "required": ["label", "type", "address"], "$ref": "#/definitions/register" }
+  },
+  "properties": {
+    "$ref": {
+      "title": "Reference to registers",
+    "example": ["#data/AI","./inputs_element.json#registers"],
+    "type": "string",
+    "pattern": "^[A-Za-z0-9./\\._\\-]*#[A-Za-z0-9/_\\-]*$$"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "register": {
+      "properties": {
+        "label": { "title": "label", "description": "label pushed in MQTT_IHM" },
+        "type": {
+          "title": "Property type",
+          "description": "property type (Homie Convention)",
+          "type": "string",
+          "enum": ["integer","float","boolean","string","enum","color"]
+        },
+        "address": { "description": "specifies register address, override key numbering", "type": "integer", "minimum": 0 },
+        "default": { "description": "optional start value" },
+        "register": {
+          "title": "registery read/write method",
+          "description": "describeregistery read/write method (BigInt64BE, BigInt64LE, BigUInt64BE, BigUInt64LE, DoubleBE, DoubleLE, FloatBE, FloatLE, Int8, Int16BE, Int32LE, Int32BE, Int16LE, UInt16BE, UInt32LE, UInt32BE, UInt16LE)",
+          "type": "string",
+          "enum": [
+            "BigInt64BE",
+            "BigInt64LE",
+            "BigUInt64BE",
+            "BigUInt64LE",
+            "DoubleBE",
+            "DoubleLE",
+            "FloatBE",
+            "FloatLE",
+            "UInt8",
+            "Int8",
+            "Int16BE",
+            "Int32LE",
+            "Int32BE",
+            "Int16LE",
+            "UInt16BE",
+            "UInt32LE",
+            "UInt32BE",
+            "UInt16LE"
+          ],
+          "default": "UInt16"
+        },
+        "offset": {
+          "title": "Offset",
+          "description": "offset reading: range 0-15 for boolean, only 0 and 8 implemented for string and integer",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "encodeInt": {
+          "title": "String to Integer encoding",
+          "description": "determine baseEncodage of number to write/read from registrer to MQTT string and default value string 16 =Hexadecimal",
+          "type": "integer",
+          "minimum": 2,
+          "default": 10,
+          "examples": [2,8,16]
+        }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "allOf": [
+            { "properties": { "type": { "enum": ["integer"] } } },
+            { "anyOf": [{ "required": ["register"] }, { "properties": { "register": { "not": { } }, "offset": { "not": { } } } }] }
+          ]
+        },
+        {
+          "allOf": [
+            { "properties": { "type": { "enum": ["string"] } } },
+            { "anyOf": [{ "required": ["register", "encodeInt"] }, { "properties": { "register": { "not": { } }, "encodeInt": { "not": { } } } }] }
+          ]
+        },
+        { "allOf": [{ "properties": { "type": { "enum": ["boolean"] } } }, { "required": ["offset"] }] }
+      ]
+    }
+  }
+}

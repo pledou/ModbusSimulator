@@ -1,0 +1,626 @@
+{
+	"definitions": {
+		"ref":{
+			"title": "Reference",
+			"description": "Reference to an other element in document or to an other document",
+			"type":"string",
+			"examples": ["#/data/registers","#data/request1", "./inputs_equipement.json"],
+			"pattern": "^(#[A-Za-z0-9\/\\.\\_]+|.[A-Za-z0-9\/\\.\\_]+\\.json)$"
+		},
+		"modbusServerIp": {
+			"allOf": [
+				{
+					"properties": {
+						"type": {
+							"enum": [
+								"tcp",
+								"udp"
+							]
+						}
+					}
+				},
+				{
+					"properties": {
+						"serialPortOptions": { "not": {}},
+						"socketOptions": { "not": {}}
+					}
+				}
+			]
+		},
+		"modbusClientIp": {
+			"allOf": [
+				{
+					"properties": {
+						"type": {
+							"enum": [
+								"tcp",
+								"udp"
+							]
+						}
+					}
+				},
+				{
+					"properties": {
+						"serialPortOptions": { "not": {}},
+						"serverOptions": { "not": {}}
+					}
+				}
+			]
+		},
+		"modbusSerial": {
+			"allOf": [
+				{
+					"properties": {
+						"type": {
+							"enum": [
+								"serial-ascii",
+								"serial-rtu"
+							]
+						}
+					}
+				},
+				{
+					"properties": {
+						"socketOptions": {"not": {}},
+						"serverOptions": {"not": {}}
+					}
+				}
+			]
+		},
+		"data": {
+			"title": "Data",
+			"type": "object",
+			"$ref": "./schema_data.json"
+		},
+		"serialPortOptions":{
+			"title":"Serialport options",
+			"description": "optionals serial options",
+			"properties": {
+				"path":{
+					"description": "serial path, by default windows port COM1 or linux /dev/ttys0",
+					"type":"string",
+					"examples": ["COM1","/dev/ttys0"],
+					"pattern": "^(COM[1-9][0-9]?|\/dev\/[A-Za-z0-9]+)$"
+				},
+				"baudRate":{
+					"title": "BaudRate",
+					"description": "The baud rate of the port to be opened. This should match one of the commonly available baud rates, such as 110, 300, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, or 115200. Custom rates are supported best effort per platform. The device connected to the serial port is not guaranteed to support the requested baud rate, even if the port itself supports that baud rate.",
+					"type":"integer",
+					"examples": [
+						110, 300, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, 115200
+					],
+					"minimum": 0,
+					"default":9600
+				},
+				"dataBits":{
+					"type":"integer",
+					"enum": [8, 7, 6, 5],
+					"default": 8
+				},
+				"lock":{
+					"description": "Prevent other processes from opening the port. Windows does not currently support `false`.",
+					"type":"boolean",
+					"default":true
+				},
+				"parity":{
+					"type":"string",
+					"enum": ["none", "even", "mark", "odd", "space"],
+					"default":"none"
+				},
+				"rtscts":{
+					"type":"boolean",
+					"default":false,
+					"description": "flow control setting"
+				},
+				"stopBits":{
+					"type":"integer",
+					"enum": [1,2],
+					"default":1
+				},
+				"xany":{
+					"type":"boolean",
+					"default":false,
+					"description": "flow control setting"
+				},
+				"xoff":{
+					"type":"boolean",
+					"default":false,
+					"description": "flow control setting"
+				},
+				"xon":{
+					"type":"boolean",
+					"default":false,
+					"description": "flow control setting"
+				},
+				"highWaterMark":{
+					"type":"integer",
+					"default":6255,
+					"description": "The size of the read and write buffers defaults to 64k."
+				}
+			},
+			"additionalProperties": false
+		}
+	},
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "./schema_appconfig.json",
+	"title": "ModbusSimulator 0.1.1",
+	"description": "ModbusSimulator configuration file",
+	"type": "object",
+	"required": [
+		"name",
+		"mqtt"
+	],
+	"properties": {
+		"name": {
+			"$id": "#root/name",
+			"title": "Name",
+			"type": "string",
+			"description": "title displayed on MQTT IHM",
+			"examples": [
+				"Nom de l'élément simulé"
+			],
+			"pattern": "^.*$"
+		},
+		"device_id": {
+			"$id": "#root/device_id",
+			"title": "Device id",
+			"type": "string",
+			"description": "MQTT IHM instance identifier, seen in mqtt path",
+			"examples": [
+				"Id_De_L_Instance"
+			],
+			"pattern": "^([A-Za-z0-9\\-_])*$"
+		},
+		"slave": {
+			"$id": "#root/slave",
+			"title": "Slave",
+			"description": "Allow to activate slave module with associated parameters",
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"properties": {
+				"type": {
+					"$id": "#root/slave/type",
+					"title": "Type",
+					"description": "type of Modbus communication",
+					"type": "string",
+					"enum": [
+						"udp",
+						"tcp",
+						"serial-ascii",
+						"serial-rtu"
+					]
+				},
+				"serialPortOptions":{"$ref":"#/definitions/serialPortOptions"},
+				"serverOptions":{
+					"title":"IP server options",
+					"description": "define IP server connection options",
+					"properties": {
+						"port":{
+							"title":"Port",
+							"description": "Port of slave Modbus server",
+							"type":"integer",
+							"default": 502,
+							"maximum": 65535,
+							"minimum": 0
+						},
+						"host":{
+							"title":"Host",
+							"description": "Restric response to following pattern",
+							"type":"string",
+							"examples": ["localhost","0.0.0.0", "127.0.1.4"],
+							"pattern": "^[A-Za-z0-9\\.]*$"
+						}
+					}
+				},
+				"delay": {
+					"$id": "#root/slave/delay",
+					"title": "Delay",
+					"description": "response delay in ms",
+					"type": "integer",
+					"default": 0
+				},
+				"script": {
+					"$id": "#root/slave/script",
+					"title": "Script",
+					"description": "relative path from ModbusSimulator.exe or ModbusSimulator.js to the script defining slave behaviour",
+					"type": "string",
+					"default": "",
+					"examples": [
+						"slave_config.js"
+					],
+					"pattern": "^.*\\.js$"
+				},
+				"addressingoffset": {
+					"$id": "#root/slave/addressingoffset",
+					"title": "Addressingoffset",
+					"description": "define addressing offset used in DO-xx DI-xx AO-xx AI-xx naming convention for mqtt advertising, 0 by default",
+					"type": "integer",
+					"examples": [
+						1
+					],
+					"default": 0
+				},
+				"debug": {
+					"$id": "#root/slave/debug",
+					"title": "Debug",
+					"description": "display all slave frames",
+					"type": "boolean",
+					"default": false
+				},
+				"stats": {
+					"$id": "#root/slave/stats",
+					"title": "Stats",
+					"description": "display periodicaly stats",
+					"type": "boolean",
+					"default": false
+				},
+				"data": {
+					"$id": "#root/slave/data",
+					"$ref": "#/definitions/data"
+				}
+			},
+			"additionalProperties": false,
+			"oneOf": [
+				{
+					"$ref": "#/definitions/modbusServerIp"
+				},
+				{
+					"$ref": "#/definitions/modbusSerial"
+				}
+			],
+			"anyOf": [
+				{
+					"required": [
+						"data"
+					]
+				},
+				{
+					"required": [
+						"script"
+					]
+				}
+			]
+		},
+		"master": {
+			"$id": "#root/master",
+			"title": "Master",
+			"description": "Allow to activate master module with associated parameters",
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"properties": {
+				"type": {
+					"$id": "#root/master/type",
+					"title": "Type",
+					"description": "type of Modbus communication",
+					"type": "string",
+					"enum": [
+						"udp",
+						"tcp",
+						"serial-ascii",
+						"serial-rtu"
+					]
+				},
+				"serialPortOptions":{"$ref":"#/definitions/serialPortOptions"},
+				"socketOptions":{
+					"title":"IP socket options",
+					"description": "define IP connection to server options",
+					"properties": {
+						"port":{
+							"title":"Port",
+							"description": "Port of slave Modbus server",
+							"type":"integer",
+							"default": 502,
+							"maximum": 65535,
+							"minimum": 0
+						},
+						"host":{
+							"title":"Host",
+							"description": "host name or IP of the slave Modbus server for master",
+							"type":"string",
+							"default":"localhost",
+							"examples": ["localhost","192.168.1.2"],
+							"pattern": "^[A-Za-z0-9\\.]*$"
+						},
+						"localAddress":{
+							"title":"Local address",
+							"description": "define ip address of current element, usefull when working on local loop",
+							"type":"string",
+							"examples": ["127.0.2.1"],
+							"pattern": "^[A-Za-z0-9\\.]*$"
+						},
+						"localPort":{
+							"description": "Force local port value",
+							"type":"string",
+							"maximum": 65535,
+							"minimum": 0
+						},
+						"family":{
+							"description": "define ipv4 or ipv6 address use",
+							"type": "number",
+							"enum": [4,6]
+						}
+					},
+					"additionalProperties": false
+				},
+				"unit_id": {
+					"$id": "#root/master/unit_id",
+					"title": "Unit_id",
+					"description": "default unit id globaly for the master instance",
+					"type": "integer",
+					"default": 1,
+					"minimum": 0,
+					"maximum": 255
+				},
+				"interval": {
+					"$id": "#root/master/interval",
+					"title": "Interval",
+					"description": "default polling interval in ms of every request",
+					"type": "integer",
+					"examples": [
+						500
+					],
+					"default": 1000,
+					"minimum": 0
+				},
+				"timeout": {
+					"$id": "#root/master/requests/items/timeout",
+					"title": "Timeout",
+					"description": "default timeout in ms of every request",
+					"type": "integer",
+					"examples": [
+						1000
+					],
+					"default": 500
+				},
+				"concurrent_transactions": {
+					"$id": "#root/master/concurrent_transactions",
+					"title": "Concurent transactions",
+					"description": "max concurent_transaction: used to limit request parametered in script",
+					"type": "integer",
+					"examples": [
+						20
+					],
+					"default": 0
+				},
+				"addressingoffset": {
+					"$id": "#root/master/addressingoffset",
+					"title": "Addressingoffset",
+					"description": "define addressing offset used in DO-xx DI-xx AO-xx AI-xx naming convention for mqtt advertising",
+					"type": "integer",
+					"examples": [
+						1
+					],
+					"default": 0
+				},
+				"script": {
+					"$id": "#root/master/script",
+					"title": "Script",
+					"description": "relative path from ModbusSimulator.exe or ModbusSimulator.js to the script defining master behaviour",
+					"type": "string",
+					"default": "",
+					"examples": [
+						"master_config.js"
+					],
+					"pattern": "^.*\\.js$"
+				},
+				"debug": {
+					"$id": "#root/master/debug",
+					"title": "Debug",
+					"description": "display all master frames",
+					"type": "boolean",
+					"default": false
+				},
+				"stats": {
+					"$id": "#root/master/stats",
+					"title": "Stats",
+					"description": "display periodical stats",
+					"type": "boolean",
+					"default": false
+				},
+				"requests": {
+					"$id": "#root/master/requests",
+					"title": "Requests",
+					"description": "list of request to execute",
+					"type": "array",
+					"default": [],
+					"items": {
+						"$id": "#root/master/requests/items",
+						"title": "Items",
+						"type": "object",
+						"required": [
+							"label",
+							"data"
+						],
+						"properties": {
+							"label": {
+								"$id": "#root/master/requests/items/label",
+								"title": "label",
+								"description": "request name to show on MQTT_IHM node name",
+								"type": "string",
+								"examples": [
+									" unique"
+								],
+								"pattern": "^.*$"
+							},
+							"interval": {
+								"$id": "#root/master/requests/items/interval",
+								"title": "Interval",
+								"description": "Interval of polling in ms, by default use of 'master//interval'",
+								"type": "integer",
+								"examples": [
+									1500
+								],
+								"minimum": 0
+							},
+							"timeout": {
+								"$id": "#root/master/requests/items/timeout",
+								"title": "Timeout",
+								"description": "Interval between two request if ther is no response or error",
+								"type": "integer",
+								"examples": [
+									1000
+								],
+								"default": 500
+							},
+							"ModbusRequestType": {
+								"$id": "#root/master/requests/items/ModbusRequestType",
+								"title": "Modbusrequesttype",
+								"type": "string",
+								"default": "readmultiple",
+								"enum": [
+									"readmultiple",
+									"readwrite",
+									"readsingle"
+								]
+							},
+							"data": {
+								"$id": "#root/master/requests/items/data",
+								"$ref": "#/definitions/data"
+							},
+							"writedata": {
+								"$id": "#root/master/requests/items/writedata",
+								"title": "Writedata",
+								"description": "//Can be added to 'data' section if 'ModbusRequestType':'readwrite' in order to write different data",
+								"type": "object",
+								"patternProperties": {
+									"^AO(#[0-9]*)?$": {
+										"title": "Holding Registers",
+										"description": "define holding registers advertised through mqtt",
+										"$ref": "./schema_registers.json"
+									}
+								},
+								"properties": {
+									"$ref": {"$ref": "#/definitions/ref"}
+								},
+								"additionalProperties": false
+							}
+						},
+						"anyOf": [
+							{"required": ["writedata"]},
+							{"properties": {
+								"ModbusRequestType": {
+									"enum": [
+										"readmultiple",
+										"readsingle"
+									]
+								}
+							}}
+						]
+					}
+				}
+			},
+			"additionalProperties": false,
+			"oneOf": [
+				{
+					"$ref": "#/definitions/modbusClientIp"
+				},
+				{
+					"$ref": "#/definitions/modbusSerial"
+				}
+			],
+			"anyOf": [
+				{
+					"required": [
+						"requests"
+					]
+				},
+				{
+					"required": [
+						"script"
+					]
+				}
+			]
+		},
+		"mqtt": {
+			"$id": "#root/mqtt",
+			"title": "Mqtt",
+			"description": "Allow to activate MQTT interactions",
+			"type": "object",
+			"properties": {
+				"host": {
+					"$id": "#root/mqtt/host",
+					"title": "Host",
+					"description": "MQTT broker address",
+					"type": "string",
+					"default": "localhost",
+					"examples": [
+						"localhost",
+						"192.168.1.2"
+					],
+					"pattern": "^.*$"
+				},
+				"port": {
+					"$id": "#root/mqtt/port",
+					"title": "Port",
+					"description": "MQTT broker port",
+					"type": "integer",
+					"default": 1883,
+					"maximum": 65535,
+					"minimum": 0
+				},
+				"base_topic": {
+					"$id": "#root/mqtt/base_topic",
+					"title": "Base topic",
+					"description": "Topic in which our instance will be published",
+					"type": "string",
+					"default": "homie/",
+					"examples": [
+						"devices/"
+					],
+					"pattern": "^([A-Za-z0-9\\-_]+(\/[A-Za-z0-9\\-_]+)*)?\\/$"
+				},
+				"auth": {
+					"$id": "#root/mqtt/auth",
+					"title": "Auth",
+					"description": "use SSL connection",
+					"type": "boolean",
+					"default": false
+				},
+				"username": {
+					"$id": "#root/mqtt/username",
+					"title": "Username",
+					"type": "string",
+					"default": "",
+					"examples": [
+						"user"
+					],
+					"pattern": "^.*$"
+				},
+				"password": {
+					"$id": "#root/mqtt/password",
+					"title": "Password",
+					"type": "string",
+					"default": "",
+					"examples": [
+						"pass"
+					],
+					"pattern": "^.*$"
+				},
+				"debug": {
+					"$id": "#root/mqtt/debug",
+					"title": "Debug",
+					"description": "display all MQTT frames",
+					"type": "boolean",
+					"default": false
+				}
+			},
+			"additionalProperties": false
+		}
+	},
+	"anyOf": [
+		{
+			"required": [
+				"slave"
+			]
+		},
+		{
+			"required": [
+				"master"
+			]
+		}
+	]
+}

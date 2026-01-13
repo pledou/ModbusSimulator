@@ -1,0 +1,16 @@
+{
+  "$schema": "../../schemas/schema_data.json",
+  "DI": {
+    "$ref": "./shared/inputs_complex_digitals.json#/digitals"
+  },
+  "DO": {
+    "$ref": "./shared/inputs_complex_coils.json#/digitals"
+  },
+  "AI": {
+    "$ref": "./shared/inputs_complex_inputs.json#/registers"
+  },
+  "AO": {
+    "$ref": "./shared/inputs_complex_outputs.json#/registers"
+  }
+}
+

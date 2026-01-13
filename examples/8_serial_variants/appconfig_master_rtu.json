@@ -1,0 +1,42 @@
+{
+  "$schema": "../../schemas/schema_appconfig.json",
+  "name": "Serial Master with RTS/CTS Handshake",
+  "device_id": "MASTER_SERIAL_RTU",
+  "master": {
+    "type": "serial-rtu",
+    "serialPortOptions": {
+      "path": "COM4",
+      "baudRate": 115200,
+      "dataBits": 8,
+      "stopBits": 1,
+      "parity": "none",
+      "rtscts": true,
+      "xon": false,
+      "xoff": false,
+      "highWaterMark": 16384
+    },
+    "unit_id": 1,
+    "interval": 500,
+    "timeout": 1000,
+    "debug": true,
+    "requests": [
+      {
+        "label": "Serial Device Read",
+        "data": {
+          "AI": {
+            "SENSOR_DATA": {
+              "label": "Sensor Data",
+              "type": "integer",
+              "address": 50,
+              "register": "UInt32BE"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "mqtt": {
+    "base_topic": "serial/master/"
+  }
+}
+

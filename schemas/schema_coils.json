@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "./schema_coils.json",
+  "title": "ModbusSimulator 0.1.1 Coils",
+  "description": "ModbusSimulator coils definition",
+  "patternProperties": {
+    "^(DI|DO)(-[0-9]*)?$": {
+      "title": "Boolean MQTT property with address defined in the name",
+      "description": "Address may be read by following 'DI-' or 'DO-' by numbers without spaces",
+      "required": ["label"],
+      "$ref": "#/definitions/coil"
+    },
+    "^[a-zA-Z0-9\\-_]*$": { "title": "Boolean MQTT property", "required": ["label", "address"], "$ref": "#/definitions/coil" }
+  },
+  "properties": {
+    "$ref": {
+      "title": "Reference to digitals",
+    "example": ["#/data/DI","./inputs_element.json#digitals"],
+    "type": "string",
+    "pattern": "^[A-Za-z0-9./\\._\\-]*#[A-Za-z0-9/_\\-]*$"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "coil": {
+      "properties": {
+        "label": { "title": "label", "description": "label pushed in MQTT_IHM" },
+        "default": { "description": "optional start value (Boolean, false by default)", "type": "boolean", "default": false },
+        "address": { "description": "specifies bit address, override key numbering", "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    }
+  }
+}

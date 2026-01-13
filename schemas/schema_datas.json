@@ -1,0 +1,9 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "./schema_data.json",
+    "title": "ModbusSimulator 0.1.1 Datas",
+    "description": "ModbusSimulator external datas definition",
+    "patternProperties":{
+        "^.*$":{ "$ref" : "./schema_data.json"}
+    }
+}

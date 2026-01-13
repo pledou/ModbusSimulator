@@ -1,0 +1,118 @@
+{
+  "$schema": "../../schemas/schema_appconfig.json",
+  "name": "Complex Master with Multiple Requests",
+  "device_id": "MASTER_COMPLEX_01",
+  "master": {
+    "type": "tcp",
+    "socketOptions": {
+      "host": "192.168.1.100",
+      "port": 502,
+      "localAddress": "192.168.1.10",
+      "family": 4
+    },
+    "unit_id": 1,
+    "interval": 1000,
+    "timeout": 500,
+    "concurrent_transactions": 20,
+    "addressingoffset": 1,
+    "debug": false,
+    "stats": true,
+    "script": "../../master_config.js",
+    "requests": [
+      {
+        "label": "Read Input Registers",
+        "interval": 500,
+        "timeout": 1000,
+        "ModbusRequestType": "readmultiple",
+        "data": {
+          "AI": {
+            "TEMPERATURE": {
+              "label": "Temperature Sensor",
+              "type": "integer",
+              "address": 100,
+              "register": "Int16BE"
+            },
+            "PRESSURE": {
+              "label": "Pressure Sensor",
+              "type": "integer",
+              "address": 101,
+              "register": "UInt16BE"
+            },
+            "HUMIDITY": {
+              "label": "Humidity Sensor",
+              "type": "float",
+              "address": 102,
+              "register": "FloatBE"
+            }
+          }
+        }
+      },
+      {
+        "label": "Read/Write Holding Registers",
+        "interval": 1000,
+        "ModbusRequestType": "readwrite",
+        "data": {
+          "AO": {
+            "AO-01": {
+              "label": "Holding Register 1",
+              "type": "integer",
+              "address": 200,
+              "register": "UInt16BE"
+            },
+            "AO-02": {
+              "label": "Holding Register 2",
+              "type": "boolean",
+              "address": 201,
+              "offset": 0
+            }
+          }
+        },
+        "writedata": {
+          "AO": {
+            "AO-03": {
+              "label": "Control Register 1",
+              "type": "integer",
+              "address": 250,
+              "register": "UInt8"
+            },
+            "AO-04": {
+              "label": "Control Register 2",
+              "type": "boolean",
+              "address": 251,
+              "offset": 3
+            }
+          }
+        }
+      },
+      {
+        "label": "Read Coils",
+        "interval": 2000,
+        "ModbusRequestType": "readmultiple",
+        "data": {
+          "DO": {
+            "DO-01": {
+              "label": "Coil 1",
+              "default": false,
+              "address": 0
+            },
+            "DO-02": {
+              "label": "Coil 2",
+              "default": true,
+              "address": 1
+            }
+          }
+        }
+      }
+    ]
+  },
+  "mqtt": {
+    "host": "broker.example.com",
+    "port": 8883,
+    "base_topic": "industrial/master/",
+    "auth": true,
+    "username": "admin",
+    "password": "secure_password",
+    "debug": true
+  }
+}
+

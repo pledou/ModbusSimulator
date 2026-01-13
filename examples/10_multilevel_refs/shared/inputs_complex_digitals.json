@@ -1,0 +1,18 @@
+{
+  "$schema": "../../schemas/schema_data.json",
+  "digitals": {
+    "Safety_Switch": {
+      "label": "Safety Switch",
+      "default": true
+    },
+    "Enable_Signal": {
+      "label": "Enable Signal",
+      "default": false
+    },
+    "Warning_Light": {
+      "label": "Warning Light",
+      "default": false
+    }
+  }
+}
+

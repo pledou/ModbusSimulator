@@ -1,0 +1,28 @@
+{
+  "$schema": "../../schemas/schema_appconfig.json",
+  "name": "Serial Slave RTU Mode",
+  "device_id": "SLAVE_SERIAL_RTU",
+  "slave": {
+    "type": "serial-rtu",
+    "serialPortOptions": {
+      "path": "COM3",
+      "baudRate": 9600,
+      "dataBits": 8,
+      "stopBits": 1,
+      "parity": "none",
+      "xon": false,
+      "xoff": false,
+      "rtscts": false
+    },
+    "delay": 100,
+    "addressingoffset": 0,
+    "script": "slave_config.js"
+  },
+  "mqtt": {
+    "host": "localhost",
+    "port": 1883,
+    "base_topic": "devices/",
+    "debug": false
+  }
+}
+

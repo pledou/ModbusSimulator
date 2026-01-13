@@ -1,0 +1,23 @@
+{
+  "$schema": "../../schemas/schema_appconfig.json",
+  "name": "E2E Test Slave",
+  "device_id": "E2E_SLAVE",
+  "slave": {
+    "type": "tcp",
+    "serverOptions": {
+      "host": "0.0.0.0",
+      "port": 1502
+    },
+    "debug": true,
+    "stats": true,
+    "data": {
+      "$ref": "./inputs_e2e.json"
+    }
+  },
+  "mqtt": {
+    "host": "localhost",
+    "port": 1883,
+    "base_topic": "homie/",
+    "debug": true
+  }
+}

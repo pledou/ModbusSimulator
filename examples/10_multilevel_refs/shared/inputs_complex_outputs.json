@@ -1,0 +1,24 @@
+{
+  "$schema": "../../schemas/schema_data.json",
+  "registers": {
+    "AO-Speed": {
+      "label": "Speed Control",
+      "type": "integer",
+      "address": 200,
+      "register": "UInt16BE"
+    },
+    "AO-Temp-SP": {
+      "label": "Temperature Setpoint",
+      "type": "integer",
+      "address": 201,
+      "register": "Int16BE"
+    },
+    "AO-Mode": {
+      "label": "Operation Mode",
+      "type": "boolean",
+      "address": 202,
+      "offset": 0
+    }
+  }
+}
+

@@ -1,0 +1,17 @@
+{
+  "$schema": "../../schemas/schema_appconfig.json",
+  "name": "default-slave",
+  "device_id": "default-device",
+  "master": {
+    "type": "udp",
+    "interval": 1000,
+    "timeout": 500,
+    "addressingoffset": 0,
+    "unit_id": 1,
+    "requests": [
+      { "label": "unique", "data": { "$ref": "./inputs.json" } }
+    ]
+  },
+  "slave": { "type": "udp", "data": { "$ref": "./inputs.json" } },
+  "mqtt": { "debug": false }
+}

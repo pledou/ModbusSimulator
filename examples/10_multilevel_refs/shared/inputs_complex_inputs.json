@@ -1,0 +1,24 @@
+{
+  "$schema": "../../schemas/schema_data.json",
+  "registers": {
+    "AI-Temp": {
+      "label": "Temperature",
+      "type": "float",
+      "address": 100,
+      "register": "FloatBE"
+    },
+    "AI-Press": {
+      "label": "Pressure",
+      "type": "integer",
+      "address": 101,
+      "register": "Int16BE"
+    },
+    "AI-Flow": {
+      "label": "Flow",
+      "type": "float",
+      "address": 102,
+      "register": "FloatLE"
+    }
+  }
+}
+

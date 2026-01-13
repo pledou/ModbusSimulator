@@ -1,0 +1,40 @@
+{
+  "$schema": "../../schemas/schema_appconfig.json",
+  "data": { "$ref": "./inputs_e2e.json" },
+  "name": "E2E Test Master",
+  "device_id": "E2E_MASTER",
+  "master": {
+    "type": "tcp",
+    "socketOptions": { "host": "localhost", "port": 1502 },
+    "unit_id": 1,
+    "interval": 1000,
+    "concurrent_transactions": 5,
+    "debug": true,
+    "stats": true,
+    "requests": [
+      {
+        "label": "Read Digitals",
+        "interval": 500,
+        "timeout": 500,
+        "ModbusRequestType": "readmultiple",
+        "data": { "DI": { "$ref": "#/data/DI" },"DO": { "$ref": "#/data/DO" } }
+      },
+      {
+        "label": "Read Analogs",
+        "interval": 500,
+        "timeout": 500,
+        "ModbusRequestType": "readmultiple",
+        "data": { "AI": { "$ref": "#/data/AI" } }
+      },
+      {
+        "label": "Read and Write Registers",
+        "interval": 500,
+        "timeout": 500,
+        "ModbusRequestType": "readwrite",
+        "data": { "AO": { "$ref": "#/data/AO" } },
+        "writedata": { "AO": { "$ref": "#/data/AO" } }
+      }
+    ]
+  },
+  "mqtt": { "host": "localhost", "port": 1883, "base_topic": "homie/", "debug": true }
+}

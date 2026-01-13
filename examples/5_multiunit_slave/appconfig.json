@@ -1,0 +1,55 @@
+{
+  "$schema": "../../schemas/schema_appconfig.json",
+  "name": "Multi-Unit Slave Configuration",
+  "device_id": "SLAVE_MULTIUNIT_01",
+  "slave": {
+    "type": "tcp",
+    "serverOptions": {
+      "host": "0.0.0.0",
+      "port": 502
+    },
+    "delay": 50,
+    "addressingoffset": 1,
+    "script": "slave_config.js",
+    "data": {
+      "DI": {
+        "Unit1_Input": {
+          "label": "Unit 1 Input",
+          "default": false
+        }
+      },
+      "DI#2": {
+        "Unit2_Input": {
+          "label": "Unit 2 Input",
+          "default": true
+        }
+      },
+      "DI#3": {
+        "Unit3_Input": {
+          "label": "Unit 3 Input",
+          "default": false
+        }
+      },
+      "AO": {
+        "AO-1000": {
+          "label": "Register Unit 1",
+          "type": "integer",
+          "address": 1000,
+          "register": "UInt16BE"
+        }
+      },
+      "AO#2": {
+        "AO-2000": {
+          "label": "Register Unit 2",
+          "type": "integer",
+          "address": 2000,
+          "register": "UInt16BE"
+        }
+      }
+    }
+  },
+  "mqtt": {
+    "base_topic": "devices/multiunit/"
+  }
+}
+

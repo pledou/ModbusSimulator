@@ -1,0 +1,165 @@
+{
+  "$schema": "../../schemas/schema_appconfig.json",
+  "name": "Slave with All Data Types",
+  "device_id": "SLAVE_ALLTYPES_01",
+  "slave": {
+    "type": "udp",
+    "serverOptions": {
+      "host": "0.0.0.0",
+      "port": 502
+    },
+    "delay": 0,
+    "addressingoffset": 0,
+    "debug": false,
+    "stats": false,
+    "data": {
+      "DI": {
+        "DI-01": {
+          "label": "Digital Input 1",
+          "default": false
+        },
+        "DI-02": {
+          "label": "Digital Input 2",
+          "default": true
+        },
+        "System_Ready": {
+          "label": "System Ready",
+          "address": 100,
+          "default": true
+        }
+      },
+      "DO": {
+        "DO-01": {
+          "label": "Coil Output 1",
+          "default": false
+        },
+        "DO-02": {
+          "label": "Coil Output 2",
+          "default": true
+        },
+        "Alarm_Flag": {
+          "label": "Alarm Flag",
+          "address": 200,
+          "default": false
+        }
+      },
+      "AI": {
+        "AI-01": {
+          "label": "Integer Input",
+          "type": "integer",
+          "address": 100,
+          "register": "UInt16BE",
+          "default": 0
+        },
+        "AI-02": {
+          "label": "Float Input",
+          "type": "float",
+          "address": 101,
+          "register": "FloatBE",
+          "default": 25.5
+        },
+        "AI-03": {
+          "label": "Signed Integer",
+          "type": "integer",
+          "address": 102,
+          "register": "Int16BE",
+          "default": -100
+        },
+        "AI-04": {
+          "label": "32-bit Unsigned",
+          "type": "integer",
+          "address": 103,
+          "register": "UInt32BE",
+          "default": 1000000
+        },
+        "AI-05": {
+          "label": "64-bit Float",
+          "type": "float",
+          "address": 105,
+          "register": "DoubleBE",
+          "default": 3.14159
+        },
+        "AI-06": {
+          "label": "String as Integer",
+          "type": "string",
+          "address": 110,
+          "register": "UInt16BE",
+          "encodeInt": 16,
+          "default": "ABCD"
+        },
+        "Temperature_C": {
+          "label": "Temperature Celsius",
+          "type": "float",
+          "address": 500,
+          "register": "Int16BE",
+          "default": 22
+        }
+      },
+      "AO": {
+        "AO-01": {
+          "label": "Holding Register Boolean",
+          "type": "boolean",
+          "address": 200,
+          "offset": 0,
+          "default": false
+        },
+        "AO-02": {
+          "label": "Holding Register Integer",
+          "type": "integer",
+          "address": 201,
+          "register": "UInt16BE",
+          "default": 500
+        },
+        "AO-03": {
+          "label": "Holding Register Float",
+          "type": "float",
+          "address": 202,
+          "register": "FloatLE",
+          "default": 12.34
+        },
+        "AO-04-00": {
+          "label": "Bit 0 of Register",
+          "type": "boolean",
+          "address": 204,
+          "offset": 0,
+          "default": true
+        },
+        "AO-04-01": {
+          "label": "Bit 1 of Register",
+          "type": "boolean",
+          "address": 204,
+          "offset": 1,
+          "default": false
+        },
+        "AO-04-08": {
+          "label": "Bit 8 of Register (Second Byte)",
+          "type": "boolean",
+          "address": 204,
+          "offset": 8,
+          "default": true
+        },
+        "Control_Mode": {
+          "label": "Control Mode",
+          "type": "enum",
+          "address": 300,
+          "register": "UInt8",
+          "default": 1
+        },
+        "RGB_Color": {
+          "label": "RGB Color",
+          "type": "color",
+          "address": 301,
+          "register": "UInt32BE",
+          "default": "ff0000"
+        }
+      }
+    }
+  },
+  "mqtt": {
+    "host": "localhost",
+    "port": 1883,
+    "base_topic": "simulator/slave/alltypes/",
+    "auth": false
+  }
+}
+

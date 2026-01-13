@@ -1,0 +1,18 @@
+{
+  "$schema": "../../schemas/schema_data.json",
+  "digitals": {
+    "Pump_Enable": {
+      "label": "Pump Enable",
+      "default": false
+    },
+    "Motor_Start": {
+      "label": "Motor Start",
+      "default": false
+    },
+    "Alarm_Output": {
+      "label": "Alarm Output",
+      "default": false
+    }
+  }
+}
+
