@@ -34,8 +34,8 @@
         "address": { "description": "specifies register address, override key numbering", "type": "integer", "minimum": 0 },
         "default": { "description": "optional start value" },
         "register": {
-          "title": "registery read/write method",
-          "description": "describeregistery read/write method (BigInt64BE, BigInt64LE, BigUInt64BE, BigUInt64LE, DoubleBE, DoubleLE, FloatBE, FloatLE, Int8, Int16BE, Int32LE, Int32BE, Int16LE, UInt16BE, UInt32LE, UInt32BE, UInt16LE)",
+          "title": "registry read/write method",
+          "description": "describe registry read/write method (BigInt64BE, BigInt64LE, BigUInt64BE, BigUInt64LE, DoubleBE, DoubleLE, FloatBE, FloatLE, Int8, Int16BE, Int32LE, Int32BE, Int16LE, UInt16BE, UInt32LE, UInt32BE, UInt16LE)",
           "type": "string",
           "enum": [
             "BigInt64BE",
@@ -80,6 +80,12 @@
         {
           "allOf": [
             { "properties": { "type": { "enum": ["integer"] } } },
+            { "anyOf": [{ "required": ["register"] }, { "properties": { "register": { "not": { } }, "offset": { "not": { } } } }] }
+          ]
+        },
+        {
+          "allOf": [
+            { "properties": { "type": { "enum": ["float"] } } },
             { "anyOf": [{ "required": ["register"] }, { "properties": { "register": { "not": { } }, "offset": { "not": { } } } }] }
           ]
         },

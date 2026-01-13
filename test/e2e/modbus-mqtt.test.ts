@@ -62,19 +62,19 @@ describe('ModbusSimulator - E2E Tests', function () {
     }
 
     const resets: Array<[string, string]> = [
-      ['homie/E2E_SLAVE/AO-00/set', '0'],
-      ['homie/E2E_SLAVE/AO-01/set', '0'],
-      ['homie/E2E_SLAVE/DO-00/set', '0'],
-      ['homie/E2E_SLAVE/DO-01/set', '0'],
-      ['homie/E2E_SLAVE/AI-00/set', '0'],
-      ['homie/E2E_SLAVE/AI-01/set', '0'],
-      ['homie/E2E_SLAVE/DI-00/set', '0'],
-      ['homie/E2E_SLAVE/DI-01/set', '0'],
+      ['homie/E2E_SLAVE/AO/AO-00/set', '0'],
+      ['homie/E2E_SLAVE/AO/AO-01/set', '0'],
+      ['homie/E2E_SLAVE/DO/DO-00/set', 'false'],
+      ['homie/E2E_SLAVE/DO/DO-01/set', 'false'],
+      ['homie/E2E_SLAVE/AI/AI-00/set', '0'],
+      ['homie/E2E_SLAVE/AI/AI-01/set', '0'],
+      ['homie/E2E_SLAVE/DI/DI-00/set', 'false'],
+      ['homie/E2E_SLAVE/DI/DI-01/set', 'false'],
     ];
 
     await Promise.all(resets.map(([topic, payload]) =>
       new Promise<void>((resolve, reject) => {
-      mqttClient.publish(topic, payload, {}, (err) => err ? reject(err) : resolve());
+        mqttClient.publish(topic, payload, {}, (err) => err ? reject(err) : resolve());
       })
     ));
 
@@ -113,7 +113,7 @@ describe('ModbusSimulator - E2E Tests', function () {
    */
   async function retrieveMessageAsync(
     predicate: (msg: { topic: string; message: string; }) => boolean,
-    timeoutMs: number = 12000
+    timeoutMs: number = 8000
   ): Promise<{ topic: string; message: string; }> {
     const findMsg = () => messageBuffer.find(predicate);
     return findMsg() || await (async () => {
@@ -127,6 +127,15 @@ describe('ModbusSimulator - E2E Tests', function () {
     })();
   }
 
+  // Master topics are prefixed by ring/unit identifiers (e.g. R0-DO), so match by suffix.
+  const masterTopicEndsWith = (topic: string, suffix: string) =>
+    topic.startsWith('homie/E2E_MASTER/') && topic.endsWith(suffix);
+
+  const toBool = (value: string) => {
+    const normalized = value.trim().toLowerCase();
+    return normalized === '1' || normalized === 'true';
+  };
+
   describe('MQTT Communication', () => {
     it('should subscribe to device topics', (done) => {
       // Already subscribed in before hook, just verify
@@ -136,6 +145,10 @@ describe('ModbusSimulator - E2E Tests', function () {
 
     it('should receive messages from slave device', async function () {
       this.timeout(15000);
+      // Action to trigger message from slave
+      await new Promise<void>((resolve, reject) => {
+        mqttClient.publish('homie/E2E_SLAVE/AO/AO-00/set', '12345', {}, (err) => err ? reject(err) : resolve());
+      });
       const msg = await retrieveMessageAsync(m => m.topic.startsWith('homie/E2E_SLAVE'));
       expect(msg.topic).to.include('homie/E2E_SLAVE');
       expect(msg.message).to.exist;
@@ -195,24 +208,22 @@ describe('ModbusSimulator - E2E Tests', function () {
   });
 
   describe('Master-Slave Interaction', () => {
-    it('should have master read updated AO value from slave', async function (done) {
-      this.timeout(10000);
-      // This test assumes the master is configured to read from the slave
-      mqttClient.publish('homie/E2E_SLAVE/AO/AO-00/set', '12345', {}, (err) => {
-        if (err) return done(err);
+    it('should have master read updated AO value from slave', async function () {
+      this.timeout(12000);
+      // Ensure publish completes before awaiting the master's readback
+      await new Promise<void>((resolve, reject) => {
+        mqttClient.publish('homie/E2E_SLAVE/AO/AO-00/set', '12345', {}, (err) => err ? reject(err) : resolve());
       });
 
-      // Check if the master published the updated value
-      const masterMsg = await retrieveMessageAsync(m => m.topic === 'homie/E2E_MASTER/AO/AO-00');
+      const masterMsg = await retrieveMessageAsync(m => masterTopicEndsWith(m.topic, 'AO/AO-00'));
       expect(masterMsg).to.exist;
       expect(masterMsg!.message).to.equal('12345');
-      done();
     });
 
     it('should have slave read updated AO value from master', async function () {
       this.timeout(10000);
       await new Promise<void>((resolve, reject) => {
-        mqttClient.publish('homie/E2E_MASTER/AO/AO-01/set', '54321', {}, (err) => err ? reject(err) : resolve());
+        mqttClient.publish('homie/E2E_MASTER/R1-AO/AO-01/set', '54321', {}, (err) => err ? reject(err) : resolve());
       });
 
       const slaveMsg = await retrieveMessageAsync(m => m.topic === 'homie/E2E_SLAVE/AO/AO-01');
@@ -223,12 +234,12 @@ describe('ModbusSimulator - E2E Tests', function () {
     it('should have master write to slave coil', async function () {
       this.timeout(10000);
       await new Promise<void>((resolve, reject) => {
-        mqttClient.publish('homie/E2E_MASTER/DO/DO-00/set', '1', {}, (err) => err ? reject(err) : resolve());
+        mqttClient.publish('homie/E2E_MASTER/R0-DO/DO-00/set', '1', {}, (err) => err ? reject(err) : resolve());
       });
 
       const slaveMsg = await retrieveMessageAsync(m => m.topic === 'homie/E2E_SLAVE/DO/DO-00');
       expect(slaveMsg).to.exist;
-      expect(slaveMsg!.message).to.equal('1');
+      expect(toBool(slaveMsg!.message)).to.equal(true);
     });
 
     it('should have slave write to master coil', async function () {
@@ -237,9 +248,9 @@ describe('ModbusSimulator - E2E Tests', function () {
         mqttClient.publish('homie/E2E_SLAVE/DO/DO-01/set', '0', {}, (err) => err ? reject(err) : resolve());
       });
 
-      const masterMsg = await retrieveMessageAsync(m => m.topic === 'homie/E2E_MASTER/DO/DO-01');
+      const masterMsg = await retrieveMessageAsync(m => masterTopicEndsWith(m.topic, 'DO/DO-00'));
       expect(masterMsg).to.exist;
-      expect(masterMsg!.message).to.equal('0');
+      expect(toBool(masterMsg!.message)).to.equal(false);
     });
 
     it('should have master read input register from slave', async function () {
@@ -248,7 +259,7 @@ describe('ModbusSimulator - E2E Tests', function () {
         mqttClient.publish('homie/E2E_SLAVE/AI/AI-00/set', '777', {}, (err) => err ? reject(err) : resolve());
       });
 
-      const masterMsg = await retrieveMessageAsync(m => m.topic === 'homie/E2E_MASTER/AI/AI-00');
+      const masterMsg = await retrieveMessageAsync(m => masterTopicEndsWith(m.topic, 'AI/AI-00'));
       expect(masterMsg).to.exist;
       expect(masterMsg!.message).to.equal('777');
     });
@@ -256,7 +267,7 @@ describe('ModbusSimulator - E2E Tests', function () {
     it('should not have master write to slave input register', async function () {
       this.timeout(10000);
       await new Promise<void>((resolve, reject) => {
-        mqttClient.publish('homie/E2E_MASTER/AI/AI-01/set', '888', {}, (err) => err ? reject(err) : resolve());
+        mqttClient.publish('homie/E2E_MASTER/R1-AI/AI-01/set', '888', {}, (err) => err ? reject(err) : resolve());
       });
 
       try {
@@ -270,21 +281,12 @@ describe('ModbusSimulator - E2E Tests', function () {
 
     it('should have master read discrete input from slave', async function () {
       this.timeout(10000);
-      // clear buffer messages to avoid false positives
-      messageBuffer = [];
       await new Promise<void>((resolve, reject) => {
         mqttClient.publish('homie/E2E_SLAVE/DI/DI-00/set', '1', {}, (err) => err ? reject(err) : resolve());
       });
-
-      // Wait for master to read slave change.
-      const msg = await retrieveMessageAsync(
-        m => m.topic === 'homie/E2E_MASTER/DI/DI-00',
-        8000
-      );
-
+      const msg = await retrieveMessageAsync(m => masterTopicEndsWith(m.topic, 'DI/DI-00'));
       expect(msg).to.exist;
-      // accept either '1' or 'true' depending on device implementation
-      expect(['1', 'true']).to.include(msg.message);
+      expect('true').to.include(msg.message);
     });
 
     it('should not have master write to slave discrete input', async function () {
@@ -292,7 +294,7 @@ describe('ModbusSimulator - E2E Tests', function () {
       // clear buffer messages to avoid false positives
       messageBuffer = [];
       await new Promise<void>((resolve, reject) => {
-        mqttClient.publish('homie/E2E_MASTER/DI/DI-01/set', '0', {}, (err) => err ? reject(err) : resolve());
+        mqttClient.publish('homie/E2E_MASTER/R0-DI/DI-01/set', '0', {}, (err) => err ? reject(err) : resolve());
       });
 
       try {

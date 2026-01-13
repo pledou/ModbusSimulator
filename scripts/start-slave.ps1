@@ -13,19 +13,20 @@ if (-not (Test-Path $logDir)) {
     New-Item -ItemType Directory -Path $logDir -Force | Out-Null
 }
 
-# Start slave and redirect output to log
+# Start slave and redirect output + error to the same log file
 Push-Location $rootDir
 try {
     Write-Host "Logs: $logFile" -ForegroundColor Cyan
-    $startInfo = @{ 
-        FilePath = 'node'
-        ArgumentList = @('ModbusSimulator.js', 'examples/e2e/slave-appconfig.json')
-        NoNewWindow = $true
-        Wait = $true
-        RedirectStandardOutput = $logFile
-        RedirectStandardError = $logFile
+
+    # Pre-create the log file so tailing starts immediately
+    if (-not (Test-Path $logFile)) {
+        New-Item -ItemType File -Path $logFile -Force | Out-Null
     }
-    Start-Process @startInfo
+
+    # Use PowerShell redirection to merge stdout/stderr into the same file
+    $command = "node ModbusSimulator.js examples/e2e/slave-appconfig.json *> `"$logFile`""
+    Start-Process -FilePath "powershell" -ArgumentList "-NoProfile", "-Command", $command -WorkingDirectory $rootDir -NoNewWindow
+
     Get-Content -Path $logFile -Tail 200 -Wait
 } finally {
     Pop-Location

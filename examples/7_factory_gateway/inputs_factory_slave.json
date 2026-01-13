@@ -3,41 +3,50 @@
   "DI": {
     "Emergency_Stop": {
       "label": "Emergency Stop Button",
-      "default": false
+      "default": false,
+      "address": 0
     },
     "Power_Supply_OK": {
       "label": "Power Supply Status",
-      "default": true
+      "default": true,
+      "address": 1
     },
     "System_Ready": {
       "label": "System Ready",
-      "default": true
+      "default": true,
+      "address": 2
     },
     "Fault_Active": {
       "label": "Fault Active",
-      "default": false
+      "default": false,
+      "address": 3
     },
     "Door_Closed": {
       "label": "Safety Door Closed",
-      "default": true
+      "default": true,
+      "address": 4
     }
   },
   "DO": {
     "Pump_Enable": {
       "label": "Pump Enable Output",
-      "default": false
+      "default": false,
+      "address": 0
     },
     "Motor_Run": {
       "label": "Motor Run Output",
-      "default": false
+      "default": false,
+      "address": 1
     },
     "Heater_On": {
       "label": "Heater On Output",
-      "default": false
+      "default": false,
+      "address": 2
     },
     "Alarm_Light": {
       "label": "Alarm Light Output",
-      "default": false
+      "default": false,
+      "address": 3
     }
   },
   "AI": {

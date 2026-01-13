@@ -17,7 +17,7 @@
     "addressingoffset": 1,
     "debug": false,
     "stats": true,
-    "script": "../../master_config.js",
+    "script": "./master_config_custom.js",
     "requests": [
       {
         "label": "Read Input Registers",

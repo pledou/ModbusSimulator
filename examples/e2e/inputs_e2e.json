@@ -9,11 +9,11 @@
     "DO-01": { "label": "Test Digital Output 2", "default": false }
   },
   "AI": {
-    "AI-00": { "label": "Test Analog Input 1", "type": "integer", "default": 100, "register": "Int16BE" },
-    "AI-01": { "label": "Test Analog Input 2", "type": "integer", "default": 200, "register": "Int16BE" }
+    "AI-00": { "label": "Test Analog Input 1", "type": "integer", "default": 100, "register": "UInt16BE" },
+    "AI-01": { "label": "Test Analog Input 2", "type": "integer", "default": 200, "register": "UInt16BE" }
   },
   "AO": {
-    "AO-00": { "label": "Test Analog Output 1", "type": "integer", "default": 0, "register": "Int16BE" },
-    "AO-01": { "label": "Test Analog Output 2", "type": "integer", "default": 0, "register": "Int16BE" }
+    "AO-00": { "label": "Test Analog Output 1", "type": "integer", "default": 0, "register": "UInt16BE" },
+    "AO-01": { "label": "Test Analog Output 2", "type": "integer", "default": 0, "register": "UInt16BE" }
   }
 }

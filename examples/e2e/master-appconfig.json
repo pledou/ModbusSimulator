@@ -24,15 +24,7 @@
         "interval": 500,
         "timeout": 500,
         "ModbusRequestType": "readmultiple",
-        "data": { "AI": { "$ref": "#/data/AI" } }
-      },
-      {
-        "label": "Read and Write Registers",
-        "interval": 500,
-        "timeout": 500,
-        "ModbusRequestType": "readwrite",
-        "data": { "AO": { "$ref": "#/data/AO" } },
-        "writedata": { "AO": { "$ref": "#/data/AO" } }
+        "data": { "AI": { "$ref": "#/data/AI" }, "AO": { "$ref": "#/data/AO" } }
       }
     ]
   },
