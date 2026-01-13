@@ -556,11 +556,7 @@ These configs use localhost networking and are preconfigured for immediate use.
 
 ## Release Notes
 
-### 1.2.0
-
-- Fixed bug when trying to write a coil/register not read before
-
-### 1.1.0
+### 1.0.0
 
 - Initial release features
 
