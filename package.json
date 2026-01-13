@@ -2,11 +2,11 @@
     "name": "modbussimulator",
     "main": "ModbusSimulator.js",
     "bin": "ModbusSimulator.js",
-    "version": "0.1.2",
-    "description": "Slave Modbus Simulator",
+    "version": "1.0.0",
+    "description": "Modbus Simulator",
     "author": "Pierre Leduc",
     "license": "MIT",
-    "readme": "docs/readme.md",
+    "readme": "readme.md",
     "scripts": {
         "test": "mocha",
         "test:unit": "mocha test/unit/*.test.ts",
@@ -16,9 +16,8 @@
         "e2e:stop": "powershell -ExecutionPolicy Bypass -File .\\scripts\\stop-all.ps1",
         "e2e:clean": "powershell -ExecutionPolicy Bypass -File .\\scripts\\clean-e2e.ps1",
         "build:pkg": "node scripts/build_pkg.js",
-        "build:document": "pandoc docs/readme.md -o ..\\Documentations\\UserManual\\readme.docx",
-        "docker-build": "docker build -t mea_simulator .",
-        "docker-run": "docker run -p 502:502/udp mea_simulator"
+        "docker-build": "docker build -t modbussimulator .",
+        "docker-run": "docker run -p 502:502/udp modbussimulator"
     },
     "devDependencies": {
         "@types/chai": "^4.3.20",

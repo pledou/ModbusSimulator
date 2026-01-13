@@ -2,13 +2,13 @@ version: "2"
 
 services:
     mea1:
-        image: mea_simulator:latest
+        image: modbussimulator:latest
         environment:
             - NAME=MEA_1
         expose:
             - 502/udp
     mea2:
-        image: mea_simulator:latest
+        image: modbussimulator:latest
         environment:
             - NAME=MEA_2
         expose:

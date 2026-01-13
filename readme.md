@@ -1,6 +1,7 @@
 # Modbus Simulator
 
-A tool implementing Modbus over serial and IP (TCP or UDP) based on the [h5.modbus](https://github.com/morkai/h5.modbus) library.
+A simulation tool implementing Modbus over serial and IP (TCP or UDP) based on the [h5.modbus](https://github.com/morkai/h5.modbus) library.
+It is interfaced whith MQTT to publish and control data points, following the [Homie Convention](https://homieiot.github.io/).
 
 ## Prerequisites
 
@@ -23,12 +24,14 @@ Modbus Simulator takes a JSON configuration file as a parameter. The default con
 ### Launching the Tool
 
 **Using the portable executable:**
+
 ```bash
 modbussimulator-x64.exe appconfig.json
 modbussimulator-x64.exe ./appconfig.json
 ```
 
 **Using Node.js from source:**
+
 ```bash
 node ModbusSimulator.js appconfig.json
 ```
@@ -223,6 +226,7 @@ Modbus Simulator's default behavior consists of setting default values to data p
 If MQTT is configured and the data configuration is consistent, then all properties are published to MQTT, following the [Homie Convention](https://homieiot.github.io/).
 
 **MQTT Topic Structure:**
+
 - A digital input will be visible in the topic: `base_topic/device_id/DI(#unit_id)/DI-xxxx`
 - To update its value to 1, send `true` to: `base_topic/device_id/DI(#unit_id)/DI-xxxx/set`
 
@@ -277,6 +281,7 @@ Modbus Simulator's default behavior consists of setting default values to data p
 If MQTT is configured and the data configuration is consistent, then all properties are published to MQTT, following the [Homie Convention](https://homieiot.github.io/).
 
 **MQTT Topic Structure:**
+
 - A digital input will be visible in the topic: `base_topic/device_id/DI(#unit_id)/DI-xxxx`
 - This value is not updatable because a Modbus master cannot update digital inputs
 - To update a coil value to 1, send `true` to: `base_topic/device_id/DO(#unit_id)/DO-xxxx/set`
@@ -352,20 +357,24 @@ docker-compose up -d
 ### Common Issues
 
 **Serial Port Access:**
+
 - On Windows: Ensure the COM port is not in use by another application
 - On Linux: User must have permissions to access `/dev/ttyS*` devices (add user to `dialout` group)
 
 **MQTT Connection:**
+
 - Verify broker is accessible and credentials are correct
 - Check firewall settings if connection fails
 
 **Configuration Errors:**
+
 - Validate JSON syntax using the provided schema files
 - Ensure unit IDs match between master and slave configurations
 
 ## Examples
 
 See the [examples](examples/) directory for various configuration scenarios:
+
 - `1_minimal_slave/` - Basic slave configuration
 - `2_serial_slave/` - Serial port communication
 - `3_complex_master/` - Advanced master setup
@@ -392,6 +401,7 @@ npm test
 ### Test Directory Structure
 
 The `test/` directory contains:
+
 - `master_config.ts` - TypeScript configuration for master testing scenarios
 
 ### Development Testing
@@ -399,11 +409,13 @@ The `test/` directory contains:
 For manual testing during development:
 
 **Test Slave Mode:**
+
 ```bash
 node ModbusSimulator.js examples/1_minimal_slave/appconfig.json
 ```
 
 **Test Master Mode:**
+
 ```bash
 node ModbusSimulator.js examples/3_complex_master/appconfig.json
 ```
@@ -414,6 +426,7 @@ Set `"debug": true` in the configuration file to see all frames exchanged.
 ### Writing Tests
 
 When contributing tests, please:
+
 - Use Mocha test framework
 - Place test files in the `test/` directory
 - Include both unit tests and integration tests where applicable
@@ -424,6 +437,7 @@ When contributing tests, please:
 ### Test Configuration
 
 Test dependencies are specified in [package.json](package.json):
+
 - `mocha` - Test framework
 - `@types/mocha` - TypeScript definitions for Mocha
 
@@ -432,6 +446,7 @@ Test dependencies are specified in [package.json](package.json):
 ### Overview
 
 The E2E testing environment provides a complete local setup with:
+
 - **MQTT Broker** (Aedes) on port 1883
 - **Modbus Slave** (TCP) on port 1502
 - **Modbus Master** connecting to slave
@@ -440,11 +455,13 @@ The E2E testing environment provides a complete local setup with:
 ### Quick Start
 
 Start the complete E2E environment:
+
 ```bash
 npm run e2e:start
 ```
 
 This will launch all services in separate PowerShell windows:
+
 - MQTT Broker with logging
 - Modbus Slave with test data
 - Modbus Master polling the slave
@@ -453,6 +470,7 @@ This will launch all services in separate PowerShell windows:
 ### Running E2E Tests
 
 With the environment running, execute tests:
+
 ```bash
 # All tests
 npm test
@@ -470,11 +488,13 @@ npm run test:e2e
 ### Managing E2E Environment
 
 **Stop all services:**
+
 ```bash
 npm run e2e:stop
 ```
 
 **Clean logs and data:**
+
 ```bash
 npm run e2e:clean
 ```
@@ -484,7 +504,7 @@ Note: Data is automatically cleaned when starting a new E2E session.
 ### Manual Testing with Hodd UI
 
 1. Start the E2E environment: `npm run e2e:start`
-2. Open browser to http://localhost:8080
+2. Open browser to <http://localhost:8080>
 3. View live MQTT messages from devices
 4. Inspect Modbus data flow
 5. Monitor device states
@@ -492,6 +512,7 @@ Note: Data is automatically cleaned when starting a new E2E session.
 ### E2E Logs and Data
 
 All E2E artifacts are stored in `.e2e/`:
+
 ```
 .e2e/
 ├── mqtt/                 # MQTT broker logs
@@ -509,6 +530,7 @@ Logs include timestamps for correlation and are preserved for analysis after tes
 ### E2E Configuration
 
 Test configurations are in [examples/e2e/](examples/e2e/):
+
 - `slave-appconfig.json` - Test slave with predefined data points
 - `master-appconfig.json` - Test master that polls the slave
 
@@ -517,29 +539,35 @@ These configs use localhost networking and are preconfigured for immediate use.
 ### Troubleshooting E2E
 
 **Ports already in use:**
+
 - Stop existing services: `npm run e2e:stop`
 - Check for other processes using ports 1883, 1502, or 8080
 
 **Tests timing out:**
+
 - Ensure E2E environment is fully started (wait ~5 seconds after `e2e:start`)
 - Check logs in `.e2e/` directories
 - Verify no firewalls blocking localhost connections
 
 **MQTT not connecting:**
+
 - Verify Aedes broker started successfully
 - Check `.e2e/mqtt/broker-*.log` for errors
 
 ## Release Notes
 
 ### 1.2.0
+
 - Fixed bug when trying to write a coil/register not read before
 
 ### 1.1.0
+
 - Initial release features
 
 ## Contributing
 
 Contributions are welcome! Please ensure:
+
 - Code follows existing style conventions
 - Configuration changes include schema updates
 - Examples are provided for new features
