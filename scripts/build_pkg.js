@@ -1,39 +1,48 @@
 // @ts-check
 'use strict'
 
-const execa = require('execa');
-const cpy = require('cpy');
+const { execa } = require('execa');
+const { default: cpy } = require('cpy');
 const path = require('path');
-(async () =>{const {stdout} = await execa('pkg', ['..', '--out-path', '../Releases'], { shell: true, cwd: __dirname });
-const lines = stdout.split(/[\r\n]+/);
-const addons = [];
-let i = 0;
-while (i < lines.length - 1) {
-	const [line, next] = lines.slice(i, i + 2).map(s => s && s.trim());
-	i += 1;
-	if (
-		line && next &&
-		line.startsWith('The addon must be distributed') &&
-		next.endsWith('.node')
-	) {
-		addons.push(next.replace('%1: ',''));
-		// already know the next was match, so skip 2
-		i += 1;
+
+(async () => {
+	const { stdout } = await execa('pkg', ['..', '--out-path', '../Releases'], { cwd: __dirname });
+	const lines = stdout.split(/[\r\n]+/);
+	const addons = [];
+	
+	for (let i = 0; i < lines.length - 1; i++) {
+		const line = lines[i]?.trim();
+		const next = lines[i + 1]?.trim();
+		
+		if (
+			line?.startsWith('The addon must be distributed') &&
+			next?.endsWith('.node')
+		) {
+			addons.push(next.replace('%1: ', ''));
+			i++; // Skip the next line since we've already processed it
+		}
 	}
-	continue;
-}
-//Add externals:
+	
+	//Add externals:
 
-//json validation
-addons.push('../schemas/schema_appconfig.json');
-addons.push('../schemas/schema_datas.json');
-addons.push('../schemas/schema_data.json');
-addons.push('../schemas/schema_coils.json');
-addons.push('../schemas/schema_registers.json');
+	//json validation
+	addons.push(path.join(__dirname, '../schemas/schema_appconfig.json'));
+	addons.push(path.join(__dirname, '../schemas/schema_datas.json'));
+	addons.push(path.join(__dirname, '../schemas/schema_data.json'));
+	addons.push(path.join(__dirname, '../schemas/schema_coils.json'));
+	addons.push(path.join(__dirname, '../schemas/schema_registers.json'));
 
-//for reuse purposal
-addons.push('../src/config/slave_config_wago.js')
-
-if (addons.length) {
-	await cpy(addons, '../Releases');
-}})().catch(e => {console.log(e);throw e;});
+	if (addons.length) {
+		await cpy(addons, path.join(__dirname, '../Releases'));
+	}
+})().catch((e) => {
+	console.error('Build failed with error:');
+	console.error(e.message || e);
+	if (e.stderr) console.error('STDERR:', e.stderr);
+	if (e.stdout) {
+		const fs = require('fs');
+		fs.writeFileSync('build-output.log', e.stdout, 'utf8');
+		console.error('Full output written to build-output.log');
+	}
+	throw e;
+});

@@ -15,7 +15,7 @@
         "e2e:start": "powershell -ExecutionPolicy Bypass -File .\\scripts\\start-e2e.ps1",
         "e2e:stop": "powershell -ExecutionPolicy Bypass -File .\\scripts\\stop-all.ps1",
         "e2e:clean": "powershell -ExecutionPolicy Bypass -File .\\scripts\\clean-e2e.ps1",
-        "build:pkg": "node scripts/build_pkg.js",
+        "build": "node scripts/build_pkg.js",
         "docker-build": "docker build -t modbussimulator .",
         "docker-run": "docker run -p 502:502/udp modbussimulator"
     },
@@ -37,8 +37,8 @@
     },
     "pkg": {
         "targets": [
-            "latest-win-x64",
-            "latest-win-x86"
+            "node18-win-x64",
+            "node18-linux-x64"
         ],
         "scripts": [
             "src/config/slave_config.js",

@@ -452,7 +452,7 @@ The E2E testing environment provides a complete local setup with:
 - **Modbus Master** connecting to slave
 - **Hodd UI** on port 8080 for manual testing
 
-### Quick Start
+### E2E Quick Start
 
 Start the complete E2E environment:
 
@@ -513,7 +513,7 @@ Note: Data is automatically cleaned when starting a new E2E session.
 
 All E2E artifacts are stored in `.e2e/`:
 
-```
+```foldertree
 .e2e/
 ├── mqtt/                 # MQTT broker logs
 │   └── broker-*.log
