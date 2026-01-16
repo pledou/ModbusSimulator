@@ -29,8 +29,17 @@ jobs:
     - run: npm ci
     - name: Run tests
       run: npm test
-    - name: Upload E2E logs on failure
-      if: failure()
+    - name: Check if E2E logs exist
+      if: always()
+      run: |
+        if [ -d ".e2e" ]; then
+          echo "E2E logs directory found"
+          find .e2e -type f -name "*.log" | head -20
+        else
+          echo "E2E logs directory not found"
+        fi
+    - name: Upload E2E logs
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: e2e-logs-node-${{ matrix.node-version }}

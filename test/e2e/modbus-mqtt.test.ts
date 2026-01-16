@@ -71,7 +71,7 @@ describe('ModbusSimulator - E2E Tests', function () {
         'node',
         ['scripts/mqtt-broker.js'],
         path.join(logDir, 'mqtt', 'mqtt-broker.log'),
-        1000,
+        2000,
         false // Suppress console logs
       );
 
@@ -81,7 +81,7 @@ describe('ModbusSimulator - E2E Tests', function () {
         'node',
         ['ModbusSimulator.js', 'examples/e2e/slave-appconfig.json'],
         path.join(logDir, 'modbus', 'slave', `slave-${timestamp}.log`),
-        2000,
+        3000,
         false // Suppress console logs
       );
 
@@ -91,7 +91,7 @@ describe('ModbusSimulator - E2E Tests', function () {
         'node',
         ['ModbusSimulator.js', 'examples/e2e/master-appconfig.json'],
         path.join(logDir, 'modbus', 'master', `master-${timestamp}.log`),
-        2000,
+        3000,
         false // Suppress console logs
       );
 
@@ -101,19 +101,29 @@ describe('ModbusSimulator - E2E Tests', function () {
       throw error;
     }
 
+    // Wait a bit more to ensure services are fully ready
+    console.log('Waiting for services to stabilize...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
     // Connect to MQTT broker
+    console.log('Connecting to MQTT broker...');
     mqttClient = mqtt.connect('mqtt://localhost:1883');
 
     return new Promise((resolve, reject) => {
+      const connectionTimeout = setTimeout(() => {
+        reject(new Error('MQTT connection timeout - services may not be responding'));
+      }, 10000);
+
       mqttClient.on('connect', () => {
-        console.log('Connected to MQTT broker');
+        clearTimeout(connectionTimeout);
+        console.log('✓ Connected to MQTT broker');
 
         // Subscribe to all topics before tests start
         mqttClient.subscribe('homie/#', (err) => {
           if (err) {
             reject(err);
           } else {
-            console.log('Subscribed to homie/#');
+            console.log('✓ Subscribed to homie/#');
             resolve();
           }
         });
@@ -126,6 +136,7 @@ describe('ModbusSimulator - E2E Tests', function () {
       });
 
       mqttClient.on('error', (err: Error) => {
+        clearTimeout(connectionTimeout);
         reject(err);
       });
 
@@ -142,6 +153,12 @@ describe('ModbusSimulator - E2E Tests', function () {
     console.log('\n=== Stopping E2E services ===');
     for (const service of services) {
       try {
+        // Suppress errors from process after killing
+        service.process.removeAllListeners('error');
+        service.process.on('error', () => {
+          // Suppress post-termination errors
+        });
+
         if (!service.process.killed) {
           service.process.kill('SIGTERM');
           console.log(`✓ ${service.name} stopped`);
@@ -155,8 +172,10 @@ describe('ModbusSimulator - E2E Tests', function () {
       }
     }
 
-    // Wait a bit and force kill any remaining
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait for graceful termination
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Force kill any remaining processes
     for (const service of services) {
       if (!service.process.killed) {
         try {
@@ -166,6 +185,9 @@ describe('ModbusSimulator - E2E Tests', function () {
         }
       }
     }
+
+    // Final wait to ensure all processes are cleaned up
+    await new Promise(resolve => setTimeout(resolve, 500));
   });
 
   // Reinitialize slave values before each test to ensure consistent test state
