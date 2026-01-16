@@ -54,8 +54,10 @@ const runInPKG = (function() {
 
 let config = null;
 
-// Skip config loading during tests if NODE_ENV is 'test'
-if (process.env.NODE_ENV !== 'test') {
+// Use default config for test environment
+if (process.env.NODE_ENV === 'test') {
+  config = readJson(join(__dirname, 'default-config.json'));
+} else {
   try {
     if (runInPKG) {
       const deployPath = dirname(process.execPath);

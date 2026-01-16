@@ -1,0 +1,25 @@
+{
+  "name": "test-device",
+  "device_id": "test-device",
+  "master": {
+    "type": "tcp",
+    "interval": 1000,
+    "timeout": 500,
+    "addressingoffset": 0,
+    "unit_id": 1,
+    "requests": []
+  },
+  "slave": {
+    "type": "tcp",
+    "addressingoffset": 0,
+    "data": {
+      "DI": {},
+      "DO": {},
+      "AI": {},
+      "AO": {}
+    }
+  },
+  "mqtt": {
+    "debug": false
+  }
+}
