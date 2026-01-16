@@ -368,12 +368,12 @@ describe('ModbusSimulator - E2E Tests', function () {
     it('should have slave read updated AO value from master', async function () {
       this.timeout(10000);
       await new Promise<void>((resolve, reject) => {
-        mqttClient.publish('homie/E2E_MASTER/R1-AO/AO-01/set', '54321', {}, (err) => err ? reject(err) : resolve());
+        mqttClient.publish('homie/E2E_MASTER/R1-AO/AO-01/set', '12345', {}, (err) => err ? reject(err) : resolve());
       });
 
       const slaveMsg = await retrieveMessageAsync(m => m.topic === 'homie/E2E_SLAVE/AO/AO-01');
       expect(slaveMsg).to.exist;
-      expect(slaveMsg!.message).to.equal('54321');
+      expect(slaveMsg!.message).to.equal('12345');
     });
 
     it('should have master write to slave coil', async function () {

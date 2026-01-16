@@ -1,6 +1,58 @@
 // @ts-check
 'use strict'
 
+/**
+ * Custom error for values outside valid register range
+ */
+class OutOfRangeError extends Error {
+  constructor(value, registerType, minValue, maxValue) {
+    super(`Value ${value} is out of range for ${registerType} (valid: ${minValue} to ${maxValue})`);
+    this.name = 'OutOfRangeError';
+    this.value = value;
+    this.registerType = registerType;
+    this.minValue = minValue;
+    this.maxValue = maxValue;
+  }
+}
+
+/**
+ * Get the valid range for a register type
+ * @param {string} registerType - Buffer method name without 'write'/'read' prefix (e.g., 'Int16BE', 'UInt16BE')
+ * @returns {{min: number, max: number}} Valid range for the register type
+ */
+function getRegisterRange(registerType) {
+  const ranges = {
+    'Int8': { min: -128, max: 127 },
+    'UInt8': { min: 0, max: 255 },
+    'Int16BE': { min: -32768, max: 32767 },
+    'Int16LE': { min: -32768, max: 32767 },
+    'UInt16BE': { min: 0, max: 65535 },
+    'UInt16LE': { min: 0, max: 65535 },
+    'Int32BE': { min: -2147483648, max: 2147483647 },
+    'Int32LE': { min: -2147483648, max: 2147483647 },
+    'UInt32BE': { min: 0, max: 4294967295 },
+    'UInt32LE': { min: 0, max: 4294967295 },
+  };
+  return ranges[registerType] || null;
+}
+
+/**
+ * Validate that a value is within the valid range for a register type
+ * @param {number} value - The value to validate
+ * @param {string} registerType - The register type (e.g., 'Int16BE', 'UInt16BE')
+ * @throws {OutOfRangeError} If value is outside valid range
+ */
+function validateRegisterRange(value, registerType) {
+  const range = getRegisterRange(registerType);
+  if (!range) {
+    // If register type is unknown, skip validation (trust Buffer methods to handle it)
+    return;
+  }
+  
+  if (value < range.min || value > range.max) {
+    throw new OutOfRangeError(value, registerType, range.min, range.max);
+  }
+}
 
 /**
 * Ecriture en registre (AI-AO)
@@ -19,7 +71,12 @@ function writeToRegister(entry, value, register, address) {
         case "integer":
         case "string":
             setValue = parseInt(value, (entry.encodeInt) ? entry.encodeInt : 10);
-            register['write' + (entry.register || "UInt16BE")](setValue, address); //as default, "UInt16BE" is used in Modbus
+            const registerType = entry.register || "Int16BE"; // Default to Int16BE (was UInt16BE but should be signed)
+            
+            // Validate value is within range for this register type
+            validateRegisterRange(setValue, registerType);
+            
+            register['write' + registerType](setValue, address);
             break;
         case "float":
         case "enum":
@@ -157,5 +214,8 @@ module.exports = {
     getRegisterAddress,
     getBufferAddress,
     getValueFromRegistery,
-    CheckOffsetReadWriteProperties
+    CheckOffsetReadWriteProperties,
+    OutOfRangeError,
+    getRegisterRange,
+    validateRegisterRange
 }
