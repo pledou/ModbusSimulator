@@ -12,10 +12,11 @@
         "test:unit": "mocha test/unit/*.test.ts",
         "test:integration": "mocha test/integration/*.test.ts",
         "test:e2e": "mocha test/e2e/*.test.ts",
-        "e2e:start": "powershell -ExecutionPolicy Bypass -File .\\scripts\\start-e2e.ps1",
-        "e2e:stop": "powershell -ExecutionPolicy Bypass -File .\\scripts\\stop-all.ps1",
-        "e2e:clean": "powershell -ExecutionPolicy Bypass -File .\\scripts\\clean-e2e.ps1",
-        "build:pkg": "node scripts/build_pkg.js",
+        "start:mqtt": "node scripts/mqtt-broker.js",
+        "start:slave": "node ModbusSimulator.js examples/e2e/slave-appconfig.json",
+        "start:master": "node ModbusSimulator.js examples/e2e/master-appconfig.json",
+        "start:hodd": "node scripts/hodd-server.js",
+        "build": "node scripts/build_pkg.js",
         "docker-build": "docker build -t modbussimulator .",
         "docker-run": "docker run -p 502:502/udp modbussimulator"
     },
@@ -24,6 +25,7 @@
         "@types/mocha": "^10.0.10",
         "@types/node": "^20.10.6",
         "chai": "^4.5.0",
+        "concurrently": "^9.2.1",
         "cpy": "^11.0.1",
         "execa": "^8.0.1",
         "mocha": "^10.8.2",
@@ -37,8 +39,8 @@
     },
     "pkg": {
         "targets": [
-            "latest-win-x64",
-            "latest-win-x86"
+            "node18-win-x64",
+            "node18-linux-x64"
         ],
         "scripts": [
             "src/config/slave_config.js",

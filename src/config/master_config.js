@@ -349,7 +349,7 @@ function setRequest(master, mqttclient) {
             modbus_lastvalue[id] = new Array(params.qte);
           }
           else {
-            modbus_lastvalue[id] = Buffer.alloc(params.qte*2); 
+            modbus_lastvalue[id] = Buffer.alloc(params.qte*2);
           }
         }
       }
@@ -410,6 +410,7 @@ function setRequest(master, mqttclient) {
       throw new Error(`${request.ModbusRequestType} is not available for ${key}`);
     }
     const id = `R${request_n}_${key}`;
+
     const params = {
       interval: (request.interval && typeof request.interval === 'number') ? request.interval : INTERVAL,
       timeout: (request.timeout && typeof request.timeout === 'number') ? request.timeout : TIMEOUT,

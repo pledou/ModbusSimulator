@@ -19,7 +19,7 @@ function writeToRegister(entry, value, register, address) {
         case "integer":
         case "string":
             setValue = parseInt(value, (entry.encodeInt) ? entry.encodeInt : 10);
-            register['write' + (entry.register || "Int16BE")](setValue, address); //as defaut, "Int16BE" is used in Modbus
+            register['write' + (entry.register || "UInt16BE")](setValue, address); //as default, "UInt16BE" is used in Modbus
             break;
         case "float":
         case "enum":
