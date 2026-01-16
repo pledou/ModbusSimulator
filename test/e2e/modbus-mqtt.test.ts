@@ -65,34 +65,34 @@ describe('ModbusSimulator - E2E Tests', function () {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
 
     try {
-      // Start MQTT Broker (show logs)
+      // Start MQTT Broker
       await startService(
         'MQTT Broker',
         'node',
         ['scripts/mqtt-broker.js'],
         path.join(logDir, 'mqtt', 'mqtt-broker.log'),
-        2000,
-        false // Suppress console logs
+        1000,
+        false
       );
 
-      // Start Modbus Slave (suppress logs)
+      // Start Modbus Slave
       await startService(
         'Modbus Slave',
         'node',
         ['ModbusSimulator.js', 'examples/e2e/slave-appconfig.json'],
         path.join(logDir, 'modbus', 'slave', `slave-${timestamp}.log`),
-        3000,
-        false // Suppress console logs
+        2000,
+        false
       );
 
-      // Start Modbus Master (suppress logs)
+      // Start Modbus Master
       await startService(
         'Modbus Master',
         'node',
         ['ModbusSimulator.js', 'examples/e2e/master-appconfig.json'],
         path.join(logDir, 'modbus', 'master', `master-${timestamp}.log`),
-        3000,
-        false // Suppress console logs
+        2000,
+        false
       );
 
       console.log('✓ All services started\n');
@@ -101,9 +101,8 @@ describe('ModbusSimulator - E2E Tests', function () {
       throw error;
     }
 
-    // Wait a bit more to ensure services are fully ready
-    console.log('Waiting for services to stabilize...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Wait for services to stabilize
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Connect to MQTT broker
     console.log('Connecting to MQTT broker...');
@@ -112,7 +111,7 @@ describe('ModbusSimulator - E2E Tests', function () {
     return new Promise((resolve, reject) => {
       const connectionTimeout = setTimeout(() => {
         reject(new Error('MQTT connection timeout - services may not be responding'));
-      }, 10000);
+      }, 5000);
 
       mqttClient.on('connect', () => {
         clearTimeout(connectionTimeout);
@@ -123,7 +122,7 @@ describe('ModbusSimulator - E2E Tests', function () {
           if (err) {
             reject(err);
           } else {
-            console.log('✓ Subscribed to homie/#');
+            console.log('✓ Subscribed to homie/#\n');
             resolve();
           }
         });
@@ -153,27 +152,27 @@ describe('ModbusSimulator - E2E Tests', function () {
     console.log('\n=== Stopping E2E services ===');
     for (const service of services) {
       try {
-        // Suppress errors from process after killing
-        service.process.removeAllListeners('error');
-        service.process.on('error', () => {
-          // Suppress post-termination errors
-        });
+        // Remove all listeners to prevent write-after-end errors
+        service.process.removeAllListeners();
+        service.logStream?.removeAllListeners();
 
+        // Close the log stream
+        if (service.logStream && !service.logStream.destroyed) {
+          service.logStream.end();
+        }
+
+        // Kill the process
         if (!service.process.killed) {
           service.process.kill('SIGTERM');
           console.log(`✓ ${service.name} stopped`);
         }
-        if (service.logStream && !service.logStream.destroyed) {
-          service.logStream.write(`\n=== ${service.name} stopped at ${new Date().toISOString()} ===\n`);
-          service.logStream.end();
-        }
       } catch (error) {
-        console.error(`Error stopping ${service.name}:`, error);
+        // Ignore errors during cleanup
       }
     }
 
     // Wait for graceful termination
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     // Force kill any remaining processes
     for (const service of services) {
@@ -185,9 +184,6 @@ describe('ModbusSimulator - E2E Tests', function () {
         }
       }
     }
-
-    // Final wait to ensure all processes are cleaned up
-    await new Promise(resolve => setTimeout(resolve, 500));
   });
 
   // Reinitialize slave values before each test to ensure consistent test state
