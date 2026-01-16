@@ -349,7 +349,7 @@ function setRequest(master, mqttclient) {
             modbus_lastvalue[id] = new Array(params.qte);
           }
           else {
-            modbus_lastvalue[id] = Buffer.alloc(params.qte * 2);
+            modbus_lastvalue[id] = Buffer.alloc(params.qte*2);
           }
         }
       }
@@ -418,8 +418,6 @@ function setRequest(master, mqttclient) {
       nodeName: nodeName(key, request_n),
       readCode: readCode[request.ModbusRequestType]
     }
-
-
     if (request.ModbusRequestType === "readsingle") {
       Object.keys(request.data[key]).forEach(prop => {
         const param = Object.assign({
@@ -487,7 +485,6 @@ function setRequest(master, mqttclient) {
       params = requests_params.get(t_id);
     }
     const id = (params.write_start_address) ? t_id + '-W' : t_id;
-
     const entry = (params.write_properties) ? params.write_properties[prop] : params.properties[prop];
     const start_address = params.write_start_address || params.start_address;
     const transactionregister_address = (util.getRegisterAddress(prop, entry.address) - start_address)
@@ -563,15 +560,16 @@ function setRequest(master, mqttclient) {
       }
     }
   }
+}
 
-  module.exports = setRequest;
+module.exports = setRequest;
 
-  /**
-   * Compute node name
-   * @param {string} key modbus key
-   * @param {number} request_n request number
-   * @returns {string} node name according to modbus key(function and unit id) and request number
-   */
-  function nodeName(key, request_n) {
-    return `R${request_n}-${key}`;
-  }
+/**
+ * Compute node name
+ * @param {string} key modbus key
+ * @param {number} request_n request number
+ * @returns {string} node name according to modbus key(function and unit id) and request number
+ */
+function nodeName(key, request_n) {
+  return `R${request_n}-${key}`;
+}
