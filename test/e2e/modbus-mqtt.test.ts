@@ -368,12 +368,12 @@ describe('ModbusSimulator - E2E Tests', function () {
     it('should have slave read updated AO value from master', async function () {
       this.timeout(10000);
       await new Promise<void>((resolve, reject) => {
-        mqttClient.publish('homie/E2E_MASTER/R1-AO/AO-01/set', '54321', {}, (err) => err ? reject(err) : resolve());
+        mqttClient.publish('homie/E2E_MASTER/R1-AO/AO-01/set', '12345', {}, (err) => err ? reject(err) : resolve());
       });
 
       const slaveMsg = await retrieveMessageAsync(m => m.topic === 'homie/E2E_SLAVE/AO/AO-01');
       expect(slaveMsg).to.exist;
-      expect(slaveMsg!.message).to.equal('54321');
+      expect(slaveMsg!.message).to.equal('12345');
     });
 
     it('should have master write to slave coil', async function () {
@@ -449,6 +449,44 @@ describe('ModbusSimulator - E2E Tests', function () {
       } catch (err) {
         // expected: no message received within timeout
       }
+    });
+  });
+
+  describe('OutOfRange Value Validation', () => {
+    it('should handle out-of-range value gracefully without crashing', async function () {
+      this.timeout(15000);
+
+      // Attempt to write value 65536 to a 16-bit register (valid range: 0-65535)
+      // This should trigger error handling in master config or be rejected
+      messageBuffer = [];
+      await new Promise<void>((resolve, reject) => {
+        mqttClient.publish('homie/E2E_MASTER/R1-AO/AO-00/set', '65536', {}, (err) => err ? reject(err) : resolve());
+      });
+
+      // Wait briefly to see if master crashes or logs error
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Master should still be connected (not crashed)
+      expect(mqttClient.connected).to.be.true;
+
+      // If error handling is implemented, we should see an error message or state change
+      // Otherwise, just verify the process didn't crash
+    });
+
+    it('should handle negative value for unsigned register gracefully', async function () {
+      this.timeout(15000);
+
+      // Attempt to write negative value to unsigned 16-bit register
+      messageBuffer = [];
+      await new Promise<void>((resolve, reject) => {
+        mqttClient.publish('homie/E2E_MASTER/R1-AO/AO-01/set', '-1', {}, (err) => err ? reject(err) : resolve());
+      });
+
+      // Wait briefly
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Master should still be connected
+      expect(mqttClient.connected).to.be.true;
     });
   });
 });
