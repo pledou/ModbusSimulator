@@ -410,6 +410,21 @@ function setRequest(master, mqttclient) {
       throw new Error(`${request.ModbusRequestType} is not available for ${key}`);
     }
     const id = `R${request_n}_${key}`;
+    
+    // Initialize cache immediately for read-write transactions
+    if (request.ModbusRequestType === "readwrite" && !modbus_lastvalue[id + '-W']) {
+      modbus_lastvalue[id + '-W'] = Buffer.alloc(params.write_qte * 2);
+    }
+    
+    // Also initialize read cache if not exists
+    if (!modbus_lastvalue[id]) {
+      if (params.readCode === FunctionCode.ReadCoils || params.readCode === FunctionCode.ReadDiscreteInputs) {
+        modbus_lastvalue[id] = new Array(params.qte);
+      } else {
+        modbus_lastvalue[id] = Buffer.alloc(params.qte * 2);
+      }
+    }
+    
     const params = {
       interval: (request.interval && typeof request.interval === 'number') ? request.interval : INTERVAL,
       timeout: (request.timeout && typeof request.timeout === 'number') ? request.timeout : TIMEOUT,
