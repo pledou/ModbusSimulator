@@ -1,11 +1,13 @@
 // @ts-check
 'use strict'
 
-const { execa } = require('execa');
-const { default: cpy } = require('cpy');
 const path = require('path');
+const fs = require('fs');
 
 (async () => {
+	const { execa } = await import('execa');
+	const { default: cpy } = await import('cpy');
+
 	const { stdout } = await execa('pkg', ['..', '--out-path', '../Releases'], { cwd: __dirname });
 	const lines = stdout.split(/[\r\n]+/);
 	const addons = [];
@@ -40,7 +42,6 @@ const path = require('path');
 	console.error(e.message || e);
 	if (e.stderr) console.error('STDERR:', e.stderr);
 	if (e.stdout) {
-		const fs = require('fs');
 		fs.writeFileSync('build-output.log', e.stdout, 'utf8');
 		console.error('Full output written to build-output.log');
 	}
