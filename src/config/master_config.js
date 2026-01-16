@@ -411,20 +411,6 @@ function setRequest(master, mqttclient) {
     }
     const id = `R${request_n}_${key}`;
     
-    // Initialize cache immediately for read-write transactions
-    if (request.ModbusRequestType === "readwrite" && !modbus_lastvalue[id + '-W']) {
-      modbus_lastvalue[id + '-W'] = Buffer.alloc(params.write_qte * 2);
-    }
-    
-    // Also initialize read cache if not exists
-    if (!modbus_lastvalue[id]) {
-      if (params.readCode === FunctionCode.ReadCoils || params.readCode === FunctionCode.ReadDiscreteInputs) {
-        modbus_lastvalue[id] = new Array(params.qte);
-      } else {
-        modbus_lastvalue[id] = Buffer.alloc(params.qte * 2);
-      }
-    }
-    
     const params = {
       interval: (request.interval && typeof request.interval === 'number') ? request.interval : INTERVAL,
       timeout: (request.timeout && typeof request.timeout === 'number') ? request.timeout : TIMEOUT,
@@ -432,6 +418,25 @@ function setRequest(master, mqttclient) {
       nodeName: nodeName(key, request_n),
       readCode: readCode[request.ModbusRequestType]
     }
+    
+    // Initialize cache immediately AFTER params is defined
+    if (request.ModbusRequestType === "readwrite") {
+      if (!modbus_lastvalue[id + '-W']) {
+        const write_prprts = sortPropertiesByAddress(request.writedata[key]);
+        const write_qte = getQte(write_prprts, request.writedata[key]);
+        modbus_lastvalue[id + '-W'] = Buffer.alloc(write_qte * 2);
+      }
+    }
+    
+    // Also initialize read cache if not exists
+    if (!modbus_lastvalue[id]) {
+      if (params.readCode === FunctionCode.ReadCoils || params.readCode === FunctionCode.ReadDiscreteInputs) {
+        modbus_lastvalue[id] = new Array(params.qte || 1);
+      } else {
+        modbus_lastvalue[id] = Buffer.alloc((params.qte || 1) * 2);
+      }
+    }
+    
     if (request.ModbusRequestType === "readsingle") {
       Object.keys(request.data[key]).forEach(prop => {
         const param = Object.assign({
