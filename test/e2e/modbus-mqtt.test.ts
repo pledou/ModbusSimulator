@@ -273,6 +273,10 @@ describe('ModbusSimulator - E2E Tests', function () {
 
     it('should receive messages from master device', async function () {
       this.timeout(15000);
+      // Action to trigger message from master
+      await new Promise<void>((resolve, reject) => {
+        mqttClient.publish('homie/E2E_MASTER/R1-AO/AO-01/set', '54321', {}, (err) => err ? reject(err) : resolve());
+      });
       const msg = await retrieveMessageAsync(m => m.topic.startsWith('homie/E2E_MASTER'));
       expect(msg.topic).to.include('homie/E2E_MASTER');
       expect(msg.message).to.exist;
