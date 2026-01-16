@@ -53,36 +53,40 @@ const runInPKG = (function() {
 })();
 
 let config = null;
-try {
-  if (runInPKG) {
-    const deployPath = dirname(process.execPath);
-    config = readJson(join(deployPath, configfile));
-  }else{
-    config = readJson(join(rootDir, configfile));
-  }
-} catch (error) {
-  // If config file not found, try to load from src/config directory (for tests)
-  if (error.code === 'ENOENT') {
-    try {
-      config = readJson(join(__dirname, 'appconfig.json'));
-    } catch (innerError) {
-      // Fail gracefully with informative error message
-      console.error('==================================================');
-      console.error('ERROR: Configuration file not found');
-      console.error('==================================================');
-      console.error(`Attempted to load: ${configfile}`);
-      console.error(`Root directory: ${rootDir}`);
-      console.error(`Also tried: ${join(__dirname, 'appconfig.json')}`);
-      console.error('');
-      console.error('Please provide a valid configuration file path as an argument:');
-      console.error('  node ModbusSimulator.js path/to/appconfig.json');
-      console.error('');
-      console.error('Or create a default appconfig.json in the root directory.');
-      console.error('==================================================');
-      process.exit(1);
+
+// Skip config loading during tests if NODE_ENV is 'test'
+if (process.env.NODE_ENV !== 'test') {
+  try {
+    if (runInPKG) {
+      const deployPath = dirname(process.execPath);
+      config = readJson(join(deployPath, configfile));
+    }else{
+      config = readJson(join(rootDir, configfile));
     }
-  } else {
-    throw error;
+  } catch (error) {
+    // If config file not found, try to load from src/config directory (for tests)
+    if (error.code === 'ENOENT') {
+      try {
+        config = readJson(join(__dirname, 'appconfig.json'));
+      } catch (innerError) {
+        // Fail gracefully with informative error message
+        console.error('==================================================');
+        console.error('ERROR: Configuration file not found');
+        console.error('==================================================');
+        console.error(`Attempted to load: ${configfile}`);
+        console.error(`Root directory: ${rootDir}`);
+        console.error(`Also tried: ${join(__dirname, 'appconfig.json')}`);
+        console.error('');
+        console.error('Please provide a valid configuration file path as an argument:');
+        console.error('  node ModbusSimulator.js path/to/appconfig.json');
+        console.error('');
+        console.error('Or create a default appconfig.json in the root directory.');
+        console.error('==================================================');
+        process.exit(1);
+      }
+    } else {
+      throw error;
+    }
   }
 }
 
