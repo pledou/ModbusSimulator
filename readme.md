@@ -443,89 +443,65 @@ Test dependencies are specified in [package.json](package.json):
 
 ## End-to-End Testing
 
-### Overview
+### Quick Start
 
-The E2E testing environment provides a complete local setup with:
+Run all tests (unit, integration, and E2E with services):
+
+```bash
+npm test
+```
+
+This command automatically:
+- Runs unit tests
+- Runs integration tests
+- Starts MQTT Broker, Modbus Slave, and Modbus Master
+- Runs E2E tests
+- Stops all services when complete
+
+### Individual Test Commands
+
+Run specific test suites:
+
+```bash
+npm run test:unit          # Unit tests only
+npm run test:integration   # Integration tests only
+npm run test:e2e           # E2E tests only (requires services to be running)
+```
+
+### Service Overview
+
+The E2E environment includes:
 
 - **MQTT Broker** (Aedes) on port 1883
 - **Modbus Slave** (TCP) on port 1502
 - **Modbus Master** connecting to slave
-- **Hodd UI** on port 8080 for manual testing
 
-### E2E Quick Start
+#### Individual Service Commands
 
-Start the complete E2E environment:
-
-```bash
-npm run e2e:start
-```
-
-This will launch all services in separate PowerShell windows:
-
-- MQTT Broker with logging
-- Modbus Slave with test data
-- Modbus Master polling the slave
-- Hodd UI for manual inspection
-
-### Running E2E Tests
-
-With the environment running, execute tests:
+For debugging specific services:
 
 ```bash
-# All tests
-npm test
-
-# Unit tests only
-npm run test:unit
-
-# Integration tests only
-npm run test:integration
-
-# E2E tests only
-npm run test:e2e
+npm run start:mqtt      # MQTT Broker
+npm run start:slave     # Modbus Slave
+npm run start:master    # Modbus Master
+npm run start:hodd      # Hodd UI (optional)
 ```
 
-### Managing E2E Environment
-
-**Stop all services:**
-
-```bash
-npm run e2e:stop
-```
-
-**Clean logs and data:**
-
-```bash
-npm run e2e:clean
-```
-
-Note: Data is automatically cleaned when starting a new E2E session.
-
-### Manual Testing with Hodd UI
-
-1. Start the E2E environment: `npm run e2e:start`
-2. Open browser to <http://localhost:8080>
-3. View live MQTT messages from devices
-4. Inspect Modbus data flow
-5. Monitor device states
-
-### E2E Logs and Data
+### E2E Logs
 
 All E2E artifacts are stored in `.e2e/`:
 
 ```foldertree
 .e2e/
 ├── mqtt/                 # MQTT broker logs
-│   └── broker-*.log
+│   └── mqtt-broker.log
 ├── modbus/
 │   ├── slave/           # Slave logs
-│   │   └── slave-*.log
+│   │   └── slave.log
 │   └── master/          # Master logs
-│       └── master-*.log
+│       └── master.log
 └── hodd/                # Hodd UI files (optional)
 ```
-
-Logs include timestamps for correlation and are preserved for analysis after test runs.
 
 ### E2E Configuration
 
@@ -540,14 +516,8 @@ These configs use localhost networking and are preconfigured for immediate use.
 
 **Ports already in use:**
 
-- Stop existing services: `npm run e2e:stop`
 - Check for other processes using ports 1883, 1502, or 8080
-
-**Tests timing out:**
-
-- Ensure E2E environment is fully started (wait ~5 seconds after `e2e:start`)
-- Check logs in `.e2e/` directories
-- Verify no firewalls blocking localhost connections
+- Manually stop services if needed and restart with `npm test`
 
 **MQTT not connecting:**
 

@@ -1,18 +1,106 @@
 import { expect } from 'chai';
 import net from 'net';
 import mqtt from 'mqtt';
+import { spawn, ChildProcess } from 'child_process';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
- * E2E tests - requires E2E environment to be running
+ * E2E tests - starts services in beforeAll hook
  * Run with: npm run test:e2e
  */
 describe('ModbusSimulator - E2E Tests', function () {
-  this.timeout(10000); // E2E tests may take longer
+  this.timeout(30000); // E2E tests may take longer
 
   let mqttClient: mqtt.MqttClient;
   let messageBuffer: Array<{ topic: string; message: string }> = [];
+  const services: Array<{ process: ChildProcess; name: string; logStream: fs.WriteStream }> = [];
 
-  before(async () => {
+  // Helper to start a service
+  async function startService(name: string, cmd: string, args: string[], logPath: string, waitTime: number, showConsole: boolean = true) {
+    const dir = path.dirname(logPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    const logStream = fs.createWriteStream(logPath, { flags: 'a' });
+    logStream.write(`\n=== ${name} started at ${new Date().toISOString()} ===\n`);
+
+    const service = spawn(cmd, args, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      detached: false
+    });
+
+    service.stdout?.on('data', (data) => {
+      logStream.write(data);
+      // Only show MQTT logs in console, suppress Modbus logs
+      if (showConsole) {
+        console.log(`[${name}] ${data.toString().trim()}`);
+      }
+    });
+
+    service.stderr?.on('data', (data) => {
+      logStream.write(data);
+      // Always show errors
+      console.log(`[${name}] ERROR: ${data.toString().trim()}`);
+    });
+
+    services.push({ process: service, name, logStream });
+    if (showConsole) {
+      console.log(`✓ ${name} started (PID: ${service.pid})`);
+    }
+
+    // Wait for service to be ready
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+  }
+
+  before(async function () {
+    console.log('\n=== Starting E2E services ===');
+    const logDir = path.join(__dirname, '../../.e2e');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+
+    try {
+      // Start MQTT Broker (show logs)
+      await startService(
+        'MQTT Broker',
+        'node',
+        ['scripts/mqtt-broker.js'],
+        path.join(logDir, 'mqtt', 'mqtt-broker.log'),
+        1000,
+        false // Suppress console logs
+      );
+
+      // Start Modbus Slave (suppress logs)
+      await startService(
+        'Modbus Slave',
+        'node',
+        ['ModbusSimulator.js', 'examples/e2e/slave-appconfig.json'],
+        path.join(logDir, 'modbus', 'slave', `slave-${timestamp}.log`),
+        2000,
+        false // Suppress console logs
+      );
+
+      // Start Modbus Master (suppress logs)
+      await startService(
+        'Modbus Master',
+        'node',
+        ['ModbusSimulator.js', 'examples/e2e/master-appconfig.json'],
+        path.join(logDir, 'modbus', 'master', `master-${timestamp}.log`),
+        2000,
+        false // Suppress console logs
+      );
+
+      console.log('✓ All services started\n');
+    } catch (error) {
+      console.error('Failed to start services:', error);
+      throw error;
+    }
+
     // Connect to MQTT broker
     mqttClient = mqtt.connect('mqtt://localhost:1883');
 
@@ -45,9 +133,38 @@ describe('ModbusSimulator - E2E Tests', function () {
     });
   });
 
-  after(() => {
+  after(async () => {
     if (mqttClient) {
       mqttClient.end();
+    }
+
+    // Stop all services
+    console.log('\n=== Stopping E2E services ===');
+    for (const service of services) {
+      try {
+        if (!service.process.killed) {
+          service.process.kill('SIGTERM');
+          console.log(`✓ ${service.name} stopped`);
+        }
+        if (service.logStream && !service.logStream.destroyed) {
+          service.logStream.write(`\n=== ${service.name} stopped at ${new Date().toISOString()} ===\n`);
+          service.logStream.end();
+        }
+      } catch (error) {
+        console.error(`Error stopping ${service.name}:`, error);
+      }
+    }
+
+    // Wait a bit and force kill any remaining
+    await new Promise(resolve => setTimeout(resolve, 500));
+    for (const service of services) {
+      if (!service.process.killed) {
+        try {
+          service.process.kill('SIGKILL');
+        } catch (error) {
+          // Already dead
+        }
+      }
     }
   });
 
@@ -167,6 +284,15 @@ describe('ModbusSimulator - E2E Tests', function () {
       this.timeout(5000);
 
       const client = new net.Socket();
+      let completed = false;
+
+      const complete = (err?: Error) => {
+        if (!completed) {
+          completed = true;
+          client.destroy();
+          done(err);
+        }
+      };
 
       client.connect(1502, 'localhost', () => {
         // Send a simple Modbus TCP request (Read Holding Registers)
@@ -191,18 +317,15 @@ describe('ModbusSimulator - E2E Tests', function () {
         // Basic validation of Modbus response
         expect(data[0]).to.equal(0x00); // Transaction ID high byte
         expect(data[1]).to.equal(0x01); // Transaction ID low byte
-        client.destroy();
-        done();
+        complete();
       });
 
       client.on('error', (err: Error) => {
-        client.destroy();
-        done(err);
+        complete(err);
       });
 
       setTimeout(() => {
-        client.destroy();
-        done(new Error('Modbus read timeout'));
+        complete(new Error('Modbus read timeout'));
       }, 4000);
     });
   });
@@ -245,12 +368,12 @@ describe('ModbusSimulator - E2E Tests', function () {
     it('should have slave write to master coil', async function () {
       this.timeout(10000);
       await new Promise<void>((resolve, reject) => {
-        mqttClient.publish('homie/E2E_SLAVE/DO/DO-01/set', '0', {}, (err) => err ? reject(err) : resolve());
+        mqttClient.publish('homie/E2E_SLAVE/DO/DO-01/set', 'true', {}, (err) => err ? reject(err) : resolve());
       });
 
-      const masterMsg = await retrieveMessageAsync(m => masterTopicEndsWith(m.topic, 'DO/DO-00'));
+      const masterMsg = await retrieveMessageAsync(m => masterTopicEndsWith(m.topic, 'DO/DO-01'));
       expect(masterMsg).to.exist;
-      expect(toBool(masterMsg!.message)).to.equal(false);
+      expect(toBool(masterMsg!.message)).to.equal(true);
     });
 
     it('should have master read input register from slave', async function () {
