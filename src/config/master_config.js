@@ -349,7 +349,7 @@ function setRequest(master, mqttclient) {
             modbus_lastvalue[id] = new Array(params.qte);
           }
           else {
-            modbus_lastvalue[id] = Buffer.alloc(params.qte*2); 
+            modbus_lastvalue[id] = Buffer.alloc(params.qte * 2);
           }
         }
       }
@@ -410,7 +410,7 @@ function setRequest(master, mqttclient) {
       throw new Error(`${request.ModbusRequestType} is not available for ${key}`);
     }
     const id = `R${request_n}_${key}`;
-    
+
     const params = {
       interval: (request.interval && typeof request.interval === 'number') ? request.interval : INTERVAL,
       timeout: (request.timeout && typeof request.timeout === 'number') ? request.timeout : TIMEOUT,
@@ -418,8 +418,8 @@ function setRequest(master, mqttclient) {
       nodeName: nodeName(key, request_n),
       readCode: readCode[request.ModbusRequestType]
     }
-    
-    
+
+
     if (request.ModbusRequestType === "readsingle") {
       Object.keys(request.data[key]).forEach(prop => {
         const param = Object.assign({
@@ -487,111 +487,91 @@ function setRequest(master, mqttclient) {
       params = requests_params.get(t_id);
     }
     const id = (params.write_start_address) ? t_id + '-W' : t_id;
-    
-    // Wait for buffers to be initialized before proceeding
-    const waitForBuffers = () => {
-      if (!modbus_lastvalue[id]) {
-        setTimeout(waitForBuffers, 10);
-        return;
-      }
-      
-      if (params.write_start_address && !modbus_lastvalue[id + '-W']) {
-        setTimeout(waitForBuffers, 10);
-        return;
-      }
-      
-      proceedWithWrite();
-    };
-    
-    const proceedWithWrite = () => {
-      const entry = (params.write_properties) ? params.write_properties[prop] : params.properties[prop];
-      const start_address = params.write_start_address || params.start_address;
-      const transactionregister_address = (util.getRegisterAddress(prop, entry.address) - start_address)
-      const transactionBuffer_address = util.getBufferAddress(prop, entry.address, start_address + ADR_OFFSET, entry.offset);
 
-      //Detect if change is necessary
-      let oldv = null;
-      const tmp = getResponseData(modbus_lastvalue[id], prop, entry, start_address);
-      util.getValueFromRegistery(entry, tmp, (v) => oldv = v);
+    const entry = (params.write_properties) ? params.write_properties[prop] : params.properties[prop];
+    const start_address = params.write_start_address || params.start_address;
+    const transactionregister_address = (util.getRegisterAddress(prop, entry.address) - start_address)
+    const transactionBuffer_address = util.getBufferAddress(prop, entry.address, start_address + ADR_OFFSET, entry.offset);
 
-      if (oldv !== null && value === oldv.toString()) { callback(); }
+    //Detect if change is necessary
+    let oldv = null;
+    const tmp = getResponseData(modbus_lastvalue[id], prop, entry, start_address);
+    util.getValueFromRegistery(entry, tmp, (v) => oldv = v);
+
+    if (oldv !== null && value === oldv.toString()) { callback(); }
+    else {
+      /**we will save updated data to
+       * -write them by modbus at next read write request
+       * -take care of all values of the register containg propertie data
+       */
+      if (typeof modbus_lastvalue[id] === 'boolean') {
+        modbus_lastvalue[id] = value;
+      }
+      else if (Array.isArray(modbus_lastvalue[id]) && typeof modbus_lastvalue[id][0] === 'boolean') {
+        modbus_lastvalue[id][transactionregister_address] = value;
+      }
       else {
-        /**we will save updated data to
-         * -write them by modbus at next read write request
-         * -take care of all values of the register containg propertie data
-         */
-        if (typeof modbus_lastvalue[id] === 'boolean') {
-          modbus_lastvalue[id] = value;
-        }
-        else if (Array.isArray(modbus_lastvalue[id]) && typeof modbus_lastvalue[id][0] === 'boolean') {
-          modbus_lastvalue[id][transactionregister_address] = value;
+        if (typeof modbus_lastvalue[id] === 'number') {
+          const tmp = Buffer.alloc(2);
+          tmp.writeUInt16BE(modbus_lastvalue[id]);
+          util.writeToRegister(entry, value, tmp, transactionBuffer_address)
+          modbus_lastvalue[id] = tmp.readUInt16BE(0);
         }
         else {
-          if (typeof modbus_lastvalue[id] === 'number') {
-            const tmp = Buffer.alloc(2);
-            tmp.writeUInt16BE(modbus_lastvalue[id]);
-            util.writeToRegister(entry, value, tmp, transactionBuffer_address)
-            modbus_lastvalue[id] = tmp.readUInt16BE(0);
+          util.writeToRegister(entry, value, modbus_lastvalue[id], transactionBuffer_address);
+        }
+      }
+      if (params.readCode !== FunctionCode.ReadWriteMultipleRegisters) {
+        //sending write request if ther is no read write request
+        try {
+          const single = params.qte === 1;
+          const write_request = {
+            functionCode: writeCode(!single)
+          };
+          if (single) {
+            write_request.address = params.start_address;
+            if (isCoil) { write_request.state = modbus_lastvalue[id]; }
+            else { write_request.value = modbus_lastvalue[id].readUInt16BE(); }
           }
           else {
-            util.writeToRegister(entry, value, modbus_lastvalue[id], transactionBuffer_address);
-          }
-        }
-        if (params.readCode !== FunctionCode.ReadWriteMultipleRegisters) {
-          //sending write request if ther is no read write request
-          try {
-            const single = params.qte === 1;
-            const write_request = {
-              functionCode: writeCode(!single)
-            };
-            if (single) {
-              write_request.address = params.start_address;
-              if (isCoil) { write_request.state = modbus_lastvalue[id]; }
-              else { write_request.value = modbus_lastvalue[id].readUInt16BE(); }
+            write_request.startingAddress = params.start_address
+            if (isCoil) {
+              write_request.states = modbus_lastvalue[id];
             }
             else {
-              write_request.startingAddress = params.start_address
-              if (isCoil) {
-                write_request.states = modbus_lastvalue[id];
-              }
-              else {
-                write_request.values = modbus_lastvalue[id];
-              }
+              write_request.values = modbus_lastvalue[id];
             }
-            const transaction = master.master.request(write_request, {
-              unit: params.unit_id
-            });
+          }
+          const transaction = master.master.request(write_request, {
+            unit: params.unit_id
+          });
 
-            transaction.on('error', (err) => console.log(`${id}(${FunctionCode[write_request.functionCode]}):  ${err.message}`));
-            transaction.on('response', (res) => {
-              if (!res.exceptionCode) {
-                callback();
-              }
-            });
-          }
-          catch (err) {
-            console.log(`${t_id}(writeToRegister): ${err.message}`);
-          }
+          transaction.on('error', (err) => console.log(`${id}(${FunctionCode[write_request.functionCode]}):  ${err.message}`));
+          transaction.on('response', (res) => {
+            if (!res.exceptionCode) {
+              callback();
+            }
+          });
         }
-        else {
-          setTransaction(t_id);
-          callback();
+        catch (err) {
+          console.log(`${t_id}(writeToRegister): ${err.message}`);
         }
       }
-    };
-    
-    waitForBuffers();
+      else {
+        setTransaction(t_id);
+        callback();
+      }
+    }
   }
-}
 
-module.exports = setRequest;
+  module.exports = setRequest;
 
-/**
- * Compute node name
- * @param {string} key modbus key
- * @param {number} request_n request number
- * @returns {string} node name according to modbus key(function and unit id) and request number
- */
-function nodeName(key, request_n) {
-  return `R${request_n}-${key}`;
-}
+  /**
+   * Compute node name
+   * @param {string} key modbus key
+   * @param {number} request_n request number
+   * @returns {string} node name according to modbus key(function and unit id) and request number
+   */
+  function nodeName(key, request_n) {
+    return `R${request_n}-${key}`;
+  }

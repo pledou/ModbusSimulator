@@ -28,22 +28,6 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - name: Run tests
-      run: npm test
-    - name: Check if E2E logs exist
-      if: always()
-      run: |
-        if [ -d ".e2e" ]; then
-          echo "E2E logs directory found"
-          find .e2e -type f -name "*.log" | head -20
-        else
-          echo "E2E logs directory not found"
-        fi
-    - name: Upload E2E logs
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: e2e-logs-node-${{ matrix.node-version }}
-        path: .e2e/
-        retention-days: 7
+      run: npm run test:unit && npm run test:integration
     - run: npm run build --if-present
 
