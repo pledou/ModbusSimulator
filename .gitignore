@@ -8,3 +8,4 @@ build-output.log
 /src/**/*.js.map
 # But keep test infrastructure JavaScript files
 !/test/**/*.js
+*.js

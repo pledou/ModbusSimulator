@@ -529,7 +529,12 @@ function setRequest(master, mqttclient) {
           const bufferSize = util.getRegisterSize(registerType);
           const tmp = Buffer.alloc(bufferSize);
           util.writeValueToRegister(entryForRegister, value, tmp, 0);
-          modbus_lastvalue[id] = util.readValueFromRegister(entryForRegister, tmp, 0);
+          // For multi-register types (Int32, UInt32), keep as Buffer to preserve all bytes
+          if (bufferSize > 2) {
+            modbus_lastvalue[id] = tmp;
+          } else {
+            modbus_lastvalue[id] = util.readValueFromRegister(entryForRegister, tmp, 0);
+          }
         }
         else {
           util.writeValueToRegister(entry, value, modbus_lastvalue[id], transactionBuffer_address);

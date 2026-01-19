@@ -85,7 +85,14 @@ function setUnitToData(unittodata, mqttclient) {
     function updateNodeValues(nodename, entries, register) {
         Object.keys(entries).forEach(key => {
             /** @type {any} */ (register).listener.on('change:' + util.getRegisterAddress(key, entries[key].address, ADR_OFFSET), function (value) {
-                util.getValueFromRegistery(entries[key], value, (v) =>
+                // For multi-register types (Int32, UInt32), read the full value from the buffer
+                // instead of using the single-register value from the event
+                let finalValue = value;
+                if (Buffer.isBuffer(register) && entries[key].register) {
+                    const buf_address = util.getBufferAddress(key, entries[key].address, ADR_OFFSET);
+                    finalValue = util.readValueFromRegister(entries[key], register, buf_address);
+                }
+                util.getValueFromRegistery(entries[key], finalValue, (v) =>
                     mqttclient.nodes[nodename.replace('#', '-')].setProperty(key).setRetained(true).send(v.toString())
                 );
             });
@@ -122,7 +129,7 @@ function setUnitToData(unittodata, mqttclient) {
                         entries[key].default // valeur changée quel que soit le type
                         || entries[key].type === 'boolean')) //présence d'un booleen -> forcer le chargement de la valeur 'false'
                 {
-                    buf_address = util.getBufferAddress(key, entries[key].address, ADR_OFFSET,0);//sans offset pour retourner un registre complet
+                    buf_address = util.getBufferAddress(key, entries[key].address, ADR_OFFSET);//sans offset pour retourner un registre complet
                     addresschanged.push({ modbus: modbus_address, buffer: buf_address });
                 }
             });
