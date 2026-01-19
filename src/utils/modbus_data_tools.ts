@@ -1,3 +1,7 @@
+// Boolean helpers kept local to avoid duplication between read/write paths
+const normalizeBoolean = (value) => (typeof value === 'boolean') ? value : (typeof value === 'string' && value === 'false') ? false : true;
+const readBooleanFromWord = (word, offset) => readBit(new Uint16Array([word]), offset, 16);
+
 /**
  * Custom error for values outside valid register range
  */
@@ -38,7 +42,7 @@ interface RegisterRange {
  */
 export interface RegisterEntry {
   type: 'boolean' | 'integer' | 'string' | 'float' | 'enum';
-  register?: RegisterType | string;
+  register?: RegisterType;
   offset?: number;
   encodeInt?: number;
   label?: string;
@@ -71,7 +75,10 @@ export function getRegisterRange(registerType: string): RegisterRange | null {
  * @param registerType - Buffer method name without 'write'/'read' prefix (e.g., 'Int16BE', 'UInt16BE')
  * @returns Size in bytes
  */
-export function getRegisterSize(registerType: string): number {
+export function getRegisterSize(registerType: string | undefined): number {
+  if (!registerType) {
+    registerType = 'Int16BE';
+  }
   if (registerType.includes('8')) return 1;
   if (registerType.includes('16')) return 2;
   if (registerType.includes('32')) return 4;
@@ -85,7 +92,7 @@ export function getRegisterSize(registerType: string): number {
  * @param registerType - The register type (e.g., 'Int16BE', 'UInt16BE')
  * @throws {OutOfRangeError} If value is outside valid range
  */
-export function validateRegisterRange(value: number, registerType: string): void {
+export function validateRegisterRange(value: number, registerType: RegisterType): void {
   const range = getRegisterRange(registerType);
   if (!range) {
     // If register type is unknown, skip validation (trust Buffer methods to handle it)
@@ -99,13 +106,25 @@ export function validateRegisterRange(value: number, registerType: string): void
 
 /**
  * Read a numeric value from a buffer using the appropriate register type
- * @param registerType - The register type (e.g., 'Int16BE', 'UInt32BE')
+ * @param entry - Entry configuration object
  * @param buffer - The buffer to read from
- * @param offset - The offset in the buffer (default: 0)
  * @returns The value read from the buffer
  */
-export function readFromRegister(registerType: string, buffer: Buffer, offset: number = 0): number {
-  return (buffer as any)['read' + registerType](offset);
+export function readFromRegister(entry: RegisterEntry | undefined, buffer: Buffer): any {
+  // Handle undefined entry
+  if (!entry) {
+    throw new Error('readFromRegister requires a valid entry parameter');
+  }
+  
+  // registerType by default is 'Int16BE' if not specified
+  const registerType = entry.register || 'Int16BE';
+  const address = entry.address || 0;
+  
+  // We should handle boolean type here
+  if (entry.type === 'boolean') {
+    return getBitFromBuffer(buffer, address, entry.offset || 0);
+  }
+  return (buffer as any)['read' + registerType](address);
 }
 
 /**
@@ -113,23 +132,27 @@ export function readFromRegister(registerType: string, buffer: Buffer, offset: n
  * @param entry - Entry configuration object
  * @param value - Value to write
  * @param register - Buffer to update
- * @param address - Buffer address (modbus*2)
  */
-export function writeValueToRegister(entry: RegisterEntry, value: any, register: Buffer, address: number): void {
+export function writeValueToRegister(entry: RegisterEntry, value: any, register: Buffer): void {
+  const address = entry.address || 0;
   let setValue: any;
   switch (entry.type) { // Homie Convention type
     case "boolean":
-      setValue = (typeof value === 'boolean') ? value : (typeof value === 'string' && value === 'false') ? false : true;
-      setBitToBuffer(register, address, entry.offset!, setValue);
+      setValue = normalizeBoolean(value);
+      setBitToBuffer(register, address, entry.offset || 0, setValue);
       break;
     case "integer":
     case "string":
       setValue = parseInt(value, (entry.encodeInt) ? entry.encodeInt : 10);
-      const registerType = entry.register || "Int16BE"; // Default to Int16BE (was UInt16BE but should be signed)
-      
+      let registerType = entry.register || "Int16BE"; // Default to Int16BE (was UInt16BE but should be signed)    
       // Validate value is within range for this register type
       validateRegisterRange(setValue, registerType);
-      
+      // Validate buffer has enough space for the write operation
+      const registerSize = getRegisterSize(registerType);
+      if (address + registerSize > register.length) {
+                throw new RangeError(`Buffer overflow: trying to write ${registerSize} bytes at offset ${address} ` +
+                    `in buffer of size ${register.length}. Buffer needs to be at least ${address + registerSize} bytes.`);
+            }
       (register as any)['write' + registerType](setValue, address);
       break;
     case "float":
@@ -177,6 +200,17 @@ export function setBitToBuffer(register: Buffer, address: number, offset: number
   } else {
     register[address] |= (1 << offset % 8);
   }
+}
+
+/**
+ * Get a bit from a Buffer
+ * @param register - Register buffer
+ * @param address - Register address
+ * @param offset - Bit offset
+ * @returns Bit state
+ */
+export function getBitFromBuffer(register: Buffer, address: number, offset: number): boolean {
+  return (register[address] & (1 << offset % 8)) === (1 << offset % 8);
 }
 
 /**
@@ -235,7 +269,7 @@ export function getValueFromRegistery(
     switch (entry.type) {
       case "boolean":
         if (typeof entry.offset === 'number') {
-          val = readBit(new Uint16Array([value]), entry.offset, 16); // Value comes from Buffer but is read register by register
+          val = readBooleanFromWord(value, entry.offset); // Value comes from Buffer but is read register by register
           callback(val);
         }
         break;

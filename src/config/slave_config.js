@@ -115,7 +115,7 @@ function setUnitToData(unittodata, mqttclient) {
                 let buf_address = util.getBufferAddress(key, entries[key].address, ADR_OFFSET, entries[key].offset);
                 const modbus_address = util.getRegisterAddress(key, entries[key].address, ADR_OFFSET);
                 if (entries[key].default) {
-                    util.writeToRegister(entries[key], entries[key].default, register, buf_address);
+                    util.writeValueToRegister(entries[key], entries[key].default, register, buf_address);
                 }
                 if (addresschanged.findIndex(a => a.modbus === modbus_address) < 0
                     && (
@@ -160,7 +160,7 @@ function setUnitToData(unittodata, mqttclient) {
                 node.advertise(key).setName(entries[key].libelle).setDatatype(entries[key].type).settable(function (range, value) {
                     node.setProperty(key).setRetained(true).send(value.toString());
                     //valeur binaire
-                    util.writeToRegister(entries[key], value, register, buf_address);
+                    util.writeValueToRegister(entries[key], value, register, buf_address);
                 });
             });
         }

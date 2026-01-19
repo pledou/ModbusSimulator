@@ -199,6 +199,8 @@ describe('ModbusSimulator - E2E Tests', function () {
     const resets: Array<[string, string]> = [
       ['homie/E2E_SLAVE/AO/AO-00/set', '0'],
       ['homie/E2E_SLAVE/AO/AO-01/set', '0'],
+      ['homie/E2E_SLAVE/AO/AO-INT32-00/set', '0'],
+      ['homie/E2E_SLAVE/AO/AO-INT32-01/set', '0'],
       ['homie/E2E_SLAVE/DO/DO-00/set', 'false'],
       ['homie/E2E_SLAVE/DO/DO-01/set', 'false'],
       ['homie/E2E_SLAVE/AI/AI-00/set', '0'],
@@ -350,6 +352,58 @@ describe('ModbusSimulator - E2E Tests', function () {
         complete(new Error('Modbus read timeout'));
       }, 4000);
     });
+
+    it('should read Int32 data from slave via Modbus TCP', function (done) {
+      this.timeout(5000);
+
+      const client = new net.Socket();
+      let completed = false;
+
+      const complete = (err?: Error) => {
+        if (!completed) {
+          completed = true;
+          client.destroy();
+          done(err);
+        }
+      };
+
+      client.connect(1502, 'localhost', () => {
+        // Send Modbus TCP request to read Int32 register (Read Holding Registers)
+        // Int32 requires 2 consecutive 16-bit registers
+        // Transaction ID: 0x0002, Protocol ID: 0x0000, Length: 0x0006
+        // Unit ID: 0x01, Function Code: 0x03 (Read Holding Registers)
+        // Starting Address: 0x0002 (offset for AO-INT32-00), Quantity: 0x0002 (2 registers for Int32)
+        const request = Buffer.from([
+          0x00, 0x02, // Transaction ID
+          0x00, 0x00, // Protocol ID
+          0x00, 0x06, // Length
+          0x01,       // Unit ID
+          0x03,       // Function Code
+          0x00, 0x02, // Starting Address (register 2)
+          0x00, 0x02  // Quantity (2 registers for Int32)
+        ]);
+
+        client.write(request);
+      });
+
+      client.on('data', (data: Buffer) => {
+        expect(data.length).to.be.greaterThan(7);
+        // Validate Modbus response for Int32
+        expect(data[0]).to.equal(0x00); // Transaction ID high byte
+        expect(data[1]).to.equal(0x02); // Transaction ID low byte
+        expect(data[7]).to.equal(0x03); // Function Code (at index 7 in response)
+        expect(data[8]).to.equal(0x04); // Byte count (4 bytes for Int32)
+        complete();
+      });
+
+      client.on('error', (err: Error) => {
+        complete(err);
+      });
+
+      setTimeout(() => {
+        complete(new Error('Modbus read timeout'));
+      }, 4000);
+    });
   });
 
   describe('Master-Slave Interaction', () => {
@@ -365,6 +419,18 @@ describe('ModbusSimulator - E2E Tests', function () {
       expect(masterMsg!.message).to.equal('12345');
     });
 
+    it('should have master read updated Int32 value from slave', async function () {
+      this.timeout(12000);
+      // Test with negative Int32 value to verify signed integer support
+      await new Promise<void>((resolve, reject) => {
+        mqttClient.publish('homie/E2E_SLAVE/AO/AO-INT32-00/set', '-123456', {}, (err) => err ? reject(err) : resolve());
+      });
+
+      const masterMsg = await retrieveMessageAsync(m => masterTopicEndsWith(m.topic, 'AO/AO-INT32-00'));
+      expect(masterMsg).to.exist;
+      expect(masterMsg!.message).to.equal('-123456');
+    });
+
     it('should have slave read updated AO value from master', async function () {
       this.timeout(10000);
       await new Promise<void>((resolve, reject) => {
@@ -374,6 +440,18 @@ describe('ModbusSimulator - E2E Tests', function () {
       const slaveMsg = await retrieveMessageAsync(m => m.topic === 'homie/E2E_SLAVE/AO/AO-01');
       expect(slaveMsg).to.exist;
       expect(slaveMsg!.message).to.equal('12345');
+    });
+
+    it('should have slave read updated Int32 value from master', async function () {
+      this.timeout(10000);
+      // Test with large positive Int32 value
+      await new Promise<void>((resolve, reject) => {
+        mqttClient.publish('homie/E2E_MASTER/R1-AO/AO-INT32-01/set', '987654', {}, (err) => err ? reject(err) : resolve());
+      });
+
+      const slaveMsg = await retrieveMessageAsync(m => m.topic === 'homie/E2E_SLAVE/AO/AO-INT32-01');
+      expect(slaveMsg).to.exist;
+      expect(slaveMsg!.message).to.equal('987654');
     });
 
     it('should have master write to slave coil', async function () {
