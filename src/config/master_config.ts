@@ -31,8 +31,10 @@ const FunctionCode = {
  * @type {{ master: { interval: any; timeout: any; addressingoffset: any; requests: any[]; unit_id: number; }; mqtt: { debug: any; }; }}
  */
 // @ts-ignore - TODO: fix variable name conflict
-const config = require('./config').default.config;
-const util = require('../utils/modbus_data_tools');
+import configDefault from './config.js';
+import * as util from '../utils/modbus_data_tools.js';
+
+const config = configDefault.config;
 
 const INTERVAL = (config.master.interval && typeof config.master.interval === 'number') ? config.master.interval : 1000;//polling delay in ms
 const MAXRETRIES = 10;
@@ -584,7 +586,7 @@ function setRequest(master, mqttclient) {
   }
 }
 
-module.exports = setRequest;
+export default setRequest;
 
 /**
  * Compute node name

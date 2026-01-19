@@ -1,8 +1,11 @@
 // @ts-check
 'use strict'
 
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 (async () => {
 	const { execa } = await import('execa');
@@ -10,7 +13,7 @@ const fs = require('fs');
 
 	const { stdout } = await execa('pkg', ['..', '--out-path', '../Releases'], { cwd: __dirname });
 	const lines = stdout.split(/[\r\n]+/);
-	const addons = [];
+	const addons: string[] = [];
 	
 	for (let i = 0; i < lines.length - 1; i++) {
 		const line = lines[i]?.trim();
@@ -37,7 +40,7 @@ const fs = require('fs');
 	if (addons.length) {
 		await cpy(addons, path.join(__dirname, '../Releases'));
 	}
-})().catch((e) => {
+})().catch((e: any) => {
 	console.error('Build failed with error:');
 	console.error(e.message || e);
 	if (e.stderr) console.error('STDERR:', e.stderr);

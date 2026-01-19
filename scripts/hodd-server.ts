@@ -6,12 +6,15 @@
  * Downloads and serves Hodd from GitHub if not present
  */
 
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
-const { spawnSync } = require('child_process');
-const os = require('os');
+import http from 'http';
+import fs from 'fs';
+import path from 'path';
+import https from 'https';
+import { spawnSync } from 'child_process';
+import os from 'os';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const PORT = process.env.HODD_PORT || 8080;
 const HODD_DIR = path.join(__dirname, '../.e2e/hodd');
@@ -19,8 +22,7 @@ const HODD_ZIP_URL = 'https://github.com/rroemhild/hodd/archive/refs/heads/maste
 const HODD_ZIP_PATH = path.join(os.tmpdir(), 'hodd-master.zip');
 
 // MIME types for static files
-/** @type {Object.<string, string>} */
-const MIME_TYPES = {
+const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html',
   '.css': 'text/css',
   '.js': 'application/javascript',
@@ -186,7 +188,7 @@ async function ensureHoddExists() {
     await downloadHoddZip();
     extractZip();
     flattenExtractedFolder();
-  } catch (err) {
+  } catch (err: any) {
     console.warn(`Hodd auto-download failed: ${err.message}`);
     console.warn('Falling back to placeholder UI.');
     createPlaceholder(indexPath);
@@ -203,11 +205,11 @@ async function ensureHoddExists() {
  * @param {http.ServerResponse} res
  * @param {string} filePath
  */
-function serveStaticFile(res, filePath) {
+function serveStaticFile(res: http.ServerResponse, filePath: string) {
   const ext = path.extname(filePath);
   const contentType = MIME_TYPES[ext] || 'application/octet-stream';
   
-  fs.readFile(filePath, (err, data) => {
+  fs.readFile(filePath, (err: any, data: Buffer) => {
     if (err) {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
       res.end('404 Not Found');
@@ -219,8 +221,8 @@ function serveStaticFile(res, filePath) {
 }
 
 // Create HTTP server
-const server = http.createServer((req, res) => {
-  let filePath = path.join(HODD_DIR, (req.url === '/' || !req.url) ? 'index.html' : req.url);
+const server = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => {
+  let filePath = path.join(HODD_DIR, (req.url === '/' || !req.url) ? 'index.html' : req.url || '');
 
   // Security: prevent directory traversal
   if (!filePath.startsWith(HODD_DIR)) {

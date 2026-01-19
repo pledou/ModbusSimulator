@@ -33,7 +33,11 @@ describe('ModbusSimulator - E2E Tests', function () {
 
     const service = spawn(cmd, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
-      detached: false
+      detached: false,
+      env: {
+        ...process.env,
+        NODE_OPTIONS: '--loader=ts-node/esm'
+      }
     });
 
     service.stdout?.on('data', (data) => {
@@ -69,7 +73,7 @@ describe('ModbusSimulator - E2E Tests', function () {
       await startService(
         'MQTT Broker',
         'node',
-        ['scripts/mqtt-broker.js'],
+        ['scripts/mqtt-broker.ts'],
         path.join(logDir, 'mqtt', 'mqtt-broker.log'),
         1000,
         false

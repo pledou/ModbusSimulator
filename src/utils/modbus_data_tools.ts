@@ -319,19 +319,4 @@ export function CheckOffsetReadWriteProperties(entry: RegisterEntry): void {
   }
 }
 
-// Export as CommonJS for backward compatibility
-module.exports = {
-  setBit,
-  readBit,
-  writeValueToRegister,
-  readValueFromRegister,
-  readFromRegister,
-  getRegisterAddress,
-  getBufferAddress,
-  getValueFromRegistery,
-  CheckOffsetReadWriteProperties,
-  OutOfRangeError,
-  getRegisterRange,
-  validateRegisterRange,
-  getRegisterSize
-};
+// All functions and classes are exported directly above via 'export function/class'

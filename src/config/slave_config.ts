@@ -1,9 +1,11 @@
 // @ts-nocheck
 'use strict'
 
-const config = require('./config').config;
-const Slave = require('../core/slave');
-const util = require('../utils/modbus_data_tools');
+import configDefault from './config.js';
+import Slave from '../core/slave.js';
+import * as util from '../utils/modbus_data_tools.js';
+
+const config = configDefault.config;
 
 function setUnitToData(unittodata, mqttclient) {
     const ADR_OFFSET = config.slave.addressingoffset && config.slave.addressingoffset && typeof config.slave.addressingoffset === 'number' ? config.slave.addressingoffset : 0;
@@ -175,4 +177,4 @@ function setUnitToData(unittodata, mqttclient) {
 
 }
 
-module.exports = setUnitToData;
+export default setUnitToData;
