@@ -1,7 +1,7 @@
 {
   "extensions": ["ts"],
-  "spec": ["test/**/*.test.ts"],
-  "timeout": 10000,
+  "spec": ["test/unit/**/*.test.ts"],
+  "timeout": 5000,
   "color": true,
   "loader": "ts-node/esm",
   "node-option": [
