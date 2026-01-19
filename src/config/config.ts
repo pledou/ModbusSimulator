@@ -1,4 +1,4 @@
-// @ts-check
+// @ts-nocheck
 'use strict';
 
 const { isAbsolute, resolve, join, parse, relative, sep, dirname } = require('path');

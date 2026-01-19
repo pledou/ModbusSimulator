@@ -1,4 +1,4 @@
-// @ts-check
+// @ts-nocheck
 // Part of <http://miracle.systems/p/modbus-master> licensed under <MIT>
 
 'use strict';

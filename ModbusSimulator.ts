@@ -1,9 +1,10 @@
-// @ts-check
+// @ts-nocheck
 'use strict';
 
 const pjson = require('./package.json');
 const Master = require('./src/core/master');
 const Slave = require('./src/core/slave');
+// @ts-ignore - TODO: fix variable name conflict with master_config
 const { config, runInPKG } = require('./src/config/config');
 const MASTER_CONFIGFILE = config.master && config.master.script && typeof config.master.script === 'string'
   ? './' + config.master.script

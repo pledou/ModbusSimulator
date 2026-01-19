@@ -2,3 +2,9 @@
 /node_modules
 /Releases
 build-output.log
+
+# TypeScript compiled output
+/src/**/*.js
+/src/**/*.js.map
+# But keep test infrastructure JavaScript files
+!/test/**/*.js

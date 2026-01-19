@@ -1,3 +1,4 @@
+// @ts-ignore - CommonJS module
 import mc from "../../src/config/master_config.js";
 import * as util from "../../src/utils/modbus_data_tools.js";
 import assert from "assert";

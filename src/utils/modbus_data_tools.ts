@@ -108,23 +108,35 @@ export function validateRegisterRange(value: number, registerType: RegisterType)
  * Read a numeric value from a buffer using the appropriate register type
  * @param entry - Entry configuration object
  * @param buffer - The buffer to read from
+ * @param addressOverride - Optional address override for position in master request
  * @returns The value read from the buffer
  */
-export function readFromRegister(entry: RegisterEntry | undefined, buffer: Buffer): any {
+export function readValueFromRegister(
+  entry: RegisterEntry | undefined,
+  buffer: Buffer,
+  addressOverride?: number
+): any {
   // Handle undefined entry
   if (!entry) {
     throw new Error('readFromRegister requires a valid entry parameter');
   }
-  
+
   // registerType by default is 'Int16BE' if not specified
   const registerType = entry.register || 'Int16BE';
-  const address = entry.address || 0;
-  
-  // We should handle boolean type here
+  const resolvedAddress = addressOverride !== undefined ? addressOverride : (entry.address || 0);
+
+  // Handle boolean type
   if (entry.type === 'boolean') {
-    return getBitFromBuffer(buffer, address, entry.offset || 0);
+    return getBitFromBuffer(buffer, resolvedAddress, entry.offset || 0);
   }
-  return (buffer as any)['read' + registerType](address);
+  return (buffer as any)['read' + registerType](resolvedAddress);
+}
+
+/**
+ * @deprecated Use readValueFromRegister instead
+ */
+export function readFromRegister(entry: RegisterEntry | undefined, buffer: Buffer, addressOverride?: number): any {
+  return readValueFromRegister(entry, buffer, addressOverride);
 }
 
 /**
@@ -132,14 +144,15 @@ export function readFromRegister(entry: RegisterEntry | undefined, buffer: Buffe
  * @param entry - Entry configuration object
  * @param value - Value to write
  * @param register - Buffer to update
+ * @param addressOverride - Optional address override for position in master request
  */
-export function writeValueToRegister(entry: RegisterEntry, value: any, register: Buffer): void {
-  const address = entry.address || 0;
+export function writeValueToRegister(entry: RegisterEntry, value: any, register: Buffer, addressOverride?: number): void {
+  const resolvedAddress = (addressOverride !== undefined) ? addressOverride : (entry.address || 0);
   let setValue: any;
   switch (entry.type) { // Homie Convention type
     case "boolean":
       setValue = normalizeBoolean(value);
-      setBitToBuffer(register, address, entry.offset || 0, setValue);
+      setBitToBuffer(register, resolvedAddress, entry.offset || 0, setValue);
       break;
     case "integer":
     case "string":
@@ -149,11 +162,12 @@ export function writeValueToRegister(entry: RegisterEntry, value: any, register:
       validateRegisterRange(setValue, registerType);
       // Validate buffer has enough space for the write operation
       const registerSize = getRegisterSize(registerType);
-      if (address + registerSize > register.length) {
-                throw new RangeError(`Buffer overflow: trying to write ${registerSize} bytes at offset ${address} ` +
-                    `in buffer of size ${register.length}. Buffer needs to be at least ${address + registerSize} bytes.`);
-            }
-      (register as any)['write' + registerType](setValue, address);
+      if (resolvedAddress + registerSize > register.length) {
+        throw new RangeError(
+          `Buffer overflow: trying to write ${registerSize} bytes at offset ${resolvedAddress} in buffer of size ${register.length}. Buffer needs to be at least ${resolvedAddress + registerSize} bytes.`
+        );
+      }
+      (register as any)['write' + registerType](setValue, resolvedAddress);
       break;
     case "float":
     case "enum":
@@ -310,6 +324,7 @@ module.exports = {
   setBit,
   readBit,
   writeValueToRegister,
+  readValueFromRegister,
   readFromRegister,
   getRegisterAddress,
   getBufferAddress,

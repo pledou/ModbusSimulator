@@ -14,7 +14,7 @@ function roundTrip(entry: util.RegisterEntry, value: any) {
   const registerCount = Math.ceil(registerSize / 2);
   const buf = Buffer.alloc(registerCount * 2+ (entry.address || 0) + registerSize );
   util.writeValueToRegister(entry, value, buf);
-  return util.readFromRegister(entry, buf);
+  return util.readValueFromRegister(entry, buf);
 }
 
 describe('Data Tools - buffer round-trip', () => {
