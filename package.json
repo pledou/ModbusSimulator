@@ -1,8 +1,8 @@
 {
     "name": "modbussimulator",
     "type": "module",
-    "main": "ModbusSimulator.js",
-    "bin": "dist-cjs/ModbusSimulator.js",
+    "main": "ModbusSimulator.ts",
+    "bin": "ModbusSimulator.ts",
     "version": "1.0.0",
     "description": "Modbus Simulator",
     "author": "Pierre Leduc",
@@ -31,27 +31,14 @@
         "cpy": "^11.0.1",
         "execa": "^8.0.1",
         "mocha": "^10.8.2",
-        "pkg": "^5.8.1",
         "ts-node": "^10.9.2",
         "typescript": "^5.3.3"
     },
     "repository": {
-        "type": "svn",
-        "url": "http://ken/svn/PSD/Tools/ModbusSimulator"
+        "type": "git",
+        "url": "https://github.com/pledou/ModbusSimulator.git"
     },
-    "pkg": {
-        "targets": [
-            "node18-win-x64",
-            "node18-linux-x64"
-        ],
-        "scripts": [
-            "dist-cjs/**/*.js",
-            "./node_modules/*"
-        ],
-        "assets": [
-            "./node_modules/**/*.node"
-        ]
-    },
+
     "dependencies": {
         "aedes": "^0.51.0",
         "h5.buffers": "^0.1.1",
@@ -65,7 +52,7 @@
         "ws": "^8.19.0"
     },
     "engines": {
-        "node": ">=20.0.0"
+        "bun": ">=1.0.0"
     },
     "ts-node": {
         "esm": true,
