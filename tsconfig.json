@@ -16,7 +16,6 @@
         "baseUrl": "./",
         "outDir": "./",
         "paths": {
-            "json-ref-lite": ["node_modules/json-ref-lite"],
             "json5": ["node_modules/json5"]
         }
     },

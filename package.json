@@ -44,11 +44,10 @@
         "h5.buffers": "^0.1.1",
         "h5.modbus": "github:morkai/h5.modbus",
         "homie-device": "^3.0.1",
-        "json-ref-lite": "^1.0.58",
+        "json-refs": "^3.0.2",
         "json5": "^2.2.3",
         "mqtt": "^5.3.4",
         "serialport": "^12.0.0",
-        "sync-request": "^6.1.0",
         "ws": "^8.19.0"
     },
     "engines": {

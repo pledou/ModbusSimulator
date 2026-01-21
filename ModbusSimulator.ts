@@ -8,12 +8,21 @@ import path from 'path';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import HomieDevice from 'homie-device';
+import { readFileSync } from 'fs';
 
 // Handle both ESM and CommonJS environments
 const req = typeof require === 'function' 
   ? require 
   : createRequire(typeof __filename !== 'undefined' ? __filename : import.meta.url);
-const pjson = req('./package.json');
+
+// Load package.json (inline for compiled builds)
+let pjson;
+try {
+  pjson = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
+} catch {
+  // Fallback for compiled builds where package.json isn't available
+  pjson = { name: 'modbussimulator', version: '1.0.1' };
+}
 
 const config = configDefault.config;
 const runInBun = configDefault.runInBun;
