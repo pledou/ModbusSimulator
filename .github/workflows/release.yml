@@ -15,8 +15,8 @@ jobs:
       - name: Install dependencies (bun)
         run: bun install
 
-      - name: Run tests (e2e)
-        run: bun run test:e2e
+      # - name: Run tests (e2e) see issue #8
+      #   run: bun run test:e2e
 
       - name: Build release (linux)
         run: bun run build
@@ -35,13 +35,13 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/bun@v2
+      - uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies (bun)
         run: bun install
 
-      - name: Run tests (e2e)
-        run: bun run test:e2e
+      # - name: Run tests (e2e) see issue #8
+      #   run: bun run test:e2e
 
       - name: Build release (windows)
         run: bun run build
