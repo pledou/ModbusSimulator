@@ -16,7 +16,7 @@ const req = typeof require === 'function'
 const pjson = req('./package.json');
 
 const config = configDefault.config;
-const runInPKG = configDefault.runInPKG;
+const runInBun = configDefault.runInBun;
 
 const MASTER_CONFIGFILE = config.master && config.master.script && typeof config.master.script === 'string'
   ? './' + config.master.script
@@ -55,7 +55,7 @@ async function main() {
     }
     //Ensuite, en présence d'une demande spécifique dans le fichier de config:
     if (SLAVE_CONFIGFILE) {
-      if (runInPKG) {
+      if (runInBun) {
         const deployPath = path.dirname(process.execPath);
         slave_config = req(path.join(deployPath, SLAVE_CONFIGFILE));
       }
@@ -73,7 +73,7 @@ async function main() {
     }
     //Ensuite, en présence d'une demande spécifique dans le fichier de config:
     if (MASTER_CONFIGFILE) {
-      if (runInPKG) {
+      if (runInBun) {
         const deployPath = path.dirname(process.execPath);
         master_config = req(path.join(deployPath, MASTER_CONFIGFILE));
       }

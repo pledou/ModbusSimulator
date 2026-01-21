@@ -29,7 +29,7 @@ const readJson = function(/** @type {string} */ jsonpath){
   }
 };
 
-const PKG_TOP_DIR = 'snapshot';
+const BUN_ROOT = '~BUN';
 
 // Get the root directory (parent of src/config)
 const rootDir = join(__dirname, '../../');
@@ -47,12 +47,12 @@ if (process.argv.length > 2 && typeof process.argv[2] === 'string' && process.ar
   }
 }
 
-const runInPKG = (function() {
+const runInBun = (function() {
   const pathParsed = parse(__dirname);
   const root = pathParsed.root;
   const dir = pathParsed.dir;
   const firstDepth = relative(root, dir).split(sep)[0];
-  return (firstDepth === PKG_TOP_DIR);
+  return (firstDepth === BUN_ROOT || root.includes('BUN'));
 })();
 
 let config = null;
@@ -62,9 +62,10 @@ if (process.env.NODE_ENV === 'test') {
   config = readJson(join(__dirname, 'default-config.json'));
 } else {
   try {
-    if (runInPKG) {
-      const deployPath = dirname(process.execPath);
-      config = readJson(join(deployPath, configfile));
+    if (runInBun) {
+      // For compiled Bun executables, resolve config relative to current working directory
+      const configPath = isAbsolute(configfile) ? configfile : resolve(process.cwd(), configfile);
+      config = readJson(configPath);
     }else{
       config = readJson(join(rootDir, configfile));
     }
@@ -79,13 +80,14 @@ if (process.env.NODE_ENV === 'test') {
         console.error('ERROR: Configuration file not found');
         console.error('==================================================');
         console.error(`Attempted to load: ${configfile}`);
-        console.error(`Root directory: ${rootDir}`);
+        console.error(`Current directory: ${process.cwd()}`);
         console.error(`Also tried: ${join(__dirname, 'appconfig.json')}`);
         console.error('');
         console.error('Please provide a valid configuration file path as an argument:');
-        console.error('  node ModbusSimulator.js path/to/appconfig.json');
+        console.error('  modbussimulator-win-x64.exe path/to/appconfig.json');
+        console.error('  or: bun ModbusSimulator.ts path/to/appconfig.json');
         console.error('');
-        console.error('Or create a default appconfig.json in the root directory.');
+        console.error('Or create a default appconfig.json in the current directory.');
         console.error('==================================================');
         process.exit(1);
       }
@@ -102,8 +104,8 @@ if (typeof process.env.NAME === 'string') {
 }
 
 export default {
-  runInPKG,
+  runInBun,
   config
 };
 
-export { runInPKG, config };
+export { runInBun, config };
