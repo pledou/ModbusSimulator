@@ -1,7 +1,5 @@
 // @ts-nocheck
 'use strict';
-
-import pjson from './package.json' assert { type: 'json' };
 import Master from './src/core/master.js';
 import Slave from './src/core/slave.js';
 // @ts-ignore - TODO: fix variable name conflict with master_config
@@ -9,9 +7,13 @@ import configDefault from './src/config/config.js';
 import path from 'path';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
+import HomieDevice from 'homie-device';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
+// Handle both ESM and CommonJS environments
+const req = typeof require === 'function' 
+  ? require 
+  : createRequire(typeof __filename !== 'undefined' ? __filename : import.meta.url);
+const pjson = req('./package.json');
 
 const config = configDefault.config;
 const runInPKG = configDefault.runInPKG;
@@ -24,7 +26,6 @@ const SLAVE_CONFIGFILE = config.slave && config.slave.script && typeof config.sl
   : null; //par défaut pas de script spécifique
 
 //add MQTT capacities
-const HomieDevice = require('homie-device');
 let mqtt_client = null;
 let slv = null;
 let mst = null;
@@ -47,8 +48,7 @@ async function main() {
   }
 
   if (config.slave) {
-    const slaveConfigModule = await import('./src/config/slave_config.js');
-    let slave_config = slaveConfigModule.default;
+    let slave_config = (await import('./src/config/slave_config.js')).default;
     slv = new Slave(config.slave);//initialisation de l'esclave
     if (config.slave.data) {
       slave_config(slv.UNIT_TO_DATA, mqtt_client); //appel de la config pré-définie en interne
@@ -57,17 +57,16 @@ async function main() {
     if (SLAVE_CONFIGFILE) {
       if (runInPKG) {
         const deployPath = path.dirname(process.execPath);
-        slave_config = require(path.join(deployPath, SLAVE_CONFIGFILE));
+        slave_config = req(path.join(deployPath, SLAVE_CONFIGFILE));
       }
       else {
-        slave_config = require(SLAVE_CONFIGFILE);
+        slave_config = (await import(SLAVE_CONFIGFILE)).default;
       }
       slave_config(slv.UNIT_TO_DATA, mqtt_client);
     }
   }
   if (config.master) {
-    const masterConfigModule = await import('./src/config/master_config.js');
-    let master_config = masterConfigModule.default;
+    let master_config = (await import('./src/config/master_config.js')).default;
     mst = new Master(config.master);
     if (config.master.requests) {
       master_config(mst, mqtt_client); //appel de la config pré-définie en interne
@@ -76,10 +75,10 @@ async function main() {
     if (MASTER_CONFIGFILE) {
       if (runInPKG) {
         const deployPath = path.dirname(process.execPath);
-        master_config = require(path.join(deployPath, MASTER_CONFIGFILE));
+        master_config = req(path.join(deployPath, MASTER_CONFIGFILE));
       }
       else {
-        master_config = require(MASTER_CONFIGFILE);
+        master_config = (await import(MASTER_CONFIGFILE)).default;
       }
 
       master_config(mst, mqtt_client);

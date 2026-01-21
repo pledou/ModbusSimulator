@@ -9,7 +9,7 @@
 import aedes from 'aedes';
 import net from 'net';
 import http from 'http';
-import ws from 'ws';
+import { WebSocketServer, createWebSocketStream } from 'ws';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -67,10 +67,10 @@ server.listen(PORT, () => {
 
 // Create WebSocket server
 const httpServer = http.createServer();
-const wsServer = new ws.Server({ server: httpServer });
+const wsServer = new WebSocketServer({ server: httpServer });
 
 wsServer.on('connection', (socket) => {
-  const stream = ws.createWebSocketStream(socket);
+  const stream = createWebSocketStream(socket);
   broker.handle(stream);
 });
 

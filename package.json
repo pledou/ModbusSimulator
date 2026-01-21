@@ -2,28 +2,23 @@
     "name": "modbussimulator",
     "type": "module",
     "main": "ModbusSimulator.js",
-    "bin": "ModbusSimulator.js",
+    "bin": "dist-cjs/ModbusSimulator.js",
     "version": "1.0.0",
     "description": "Modbus Simulator",
     "author": "Pierre Leduc",
     "license": "MIT",
     "readme": "readme.md",
     "scripts": {
-        "compile": "tsc",
-        "pretest": "npm run compile",
         "test": "mocha",
         "test:ci": "mocha --config .mocharc.ci.json",
         "test:unit": "mocha test/unit/*.test.ts --config .mocharc.ci.json",
         "test:integration": "mocha test/integration/*.test.ts --config .mocharc.ci.json",
         "test:e2e": "mocha test/e2e/*.test.ts",
-        "start:mqtt": "node --loader ts-node/esm scripts/mqtt-broker.ts",
-        "prestart:slave": "npm run compile",
-        "start:slave": "node ModbusSimulator.js examples/e2e/slave-appconfig.json",
-        "prestart:master": "npm run compile",
-        "start:master": "node ModbusSimulator.js examples/e2e/master-appconfig.json",
-        "start:hodd": "node --loader ts-node/esm scripts/hodd-server.ts",
-        "prebuild": "npm run compile",
-        "build": "node --loader ts-node/esm scripts/build_pkg.ts",
+        "start:mqtt": "bun --import=ts-node/esm scripts/mqtt-broker.ts",
+        "start:slave": "bun ModbusSimulator.ts examples/e2e/slave-appconfig.json",
+        "start:master": "bun ModbusSimulator.ts examples/e2e/master-appconfig.json",
+        "start:hodd": "bun --import=ts-node/esm scripts/hodd-server.ts",
+        "build": "bun scripts/build_pkg.ts",
         "docker-build": "docker build -t modbussimulator .",
         "docker-run": "docker run -p 502:502/udp modbussimulator"
     },
@@ -50,8 +45,7 @@
             "node18-linux-x64"
         ],
         "scripts": [
-            "src/config/slave_config.js",
-            "src/config/master_config.js",
+            "dist-cjs/**/*.js",
             "./node_modules/*"
         ],
         "assets": [
@@ -67,12 +61,12 @@
         "json5": "^2.2.3",
         "mqtt": "^5.3.4",
         "serialport": "^12.0.0",
+        "sync-request": "^6.1.0",
         "ws": "^8.19.0"
     },
     "engines": {
         "node": ">=20.0.0"
     },
-    "type": "commonjs",
     "ts-node": {
         "esm": true,
         "experimentalEsm": true,

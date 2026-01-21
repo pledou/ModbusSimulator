@@ -5,9 +5,6 @@ It is interfaced whith MQTT to publish and control data points, following the [H
 
 ## Prerequisites
 
-- Node.js (v14 or higher) - required if running from source
-- For serial communication: appropriate serial port drivers
-- For MQTT integration: access to an MQTT broker
 
 ## Quick Start
 
@@ -16,6 +13,19 @@ It is interfaced whith MQTT to publish and control data points, following the [H
 3. Run with: `modbussimulator-x64.exe` or `node ModbusSimulator.js`
 
 See the [examples](examples/) directory for sample configurations.
+
+### Bun standalone build (with serialport externalized)
+
+- Build the executable with Bun: `bun scripts/build_pkg.ts`
+- The build keeps `serialport` external and copies `node_modules/serialport` into `Releases/node_modules/serialport`.
+- Run the binary from inside the `Releases` directory so the external `serialport` native binding is found:
+
+```powershell
+cd Releases
+./modbussimulator-win-x64.exe ../examples/e2e/slave-appconfig.json
+```
+
+For Linux builds, run the same build script on a Linux host and run from the `Releases` directory in the same way.
 
 ## Parameters
 

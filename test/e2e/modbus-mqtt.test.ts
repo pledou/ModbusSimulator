@@ -36,7 +36,7 @@ describe('ModbusSimulator - E2E Tests', function () {
       detached: false,
       env: {
         ...process.env,
-        NODE_OPTIONS: '--loader=ts-node/esm'
+        NODE_OPTIONS: '--import=ts-node/esm'
       }
     });
 
@@ -83,7 +83,7 @@ describe('ModbusSimulator - E2E Tests', function () {
       await startService(
         'Modbus Slave',
         'node',
-        ['ModbusSimulator.js', 'examples/e2e/slave-appconfig.json'],
+        ['--import=ts-node/esm', 'ModbusSimulator.ts', 'examples/e2e/slave-appconfig.json'],
         path.join(logDir, 'modbus', 'slave', `slave-${timestamp}.log`),
         2000,
         false
@@ -93,7 +93,7 @@ describe('ModbusSimulator - E2E Tests', function () {
       await startService(
         'Modbus Master',
         'node',
-        ['ModbusSimulator.js', 'examples/e2e/master-appconfig.json'],
+        ['--import=ts-node/esm', 'ModbusSimulator.ts', 'examples/e2e/master-appconfig.json'],
         path.join(logDir, 'modbus', 'master', `master-${timestamp}.log`),
         2000,
         false
