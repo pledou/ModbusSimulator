@@ -6,12 +6,15 @@
  * Runs a local MQTT broker with persistence
  */
 
-const aedes = require('aedes');
-const net = require('net');
-const http = require('http');
-const ws = require('ws');
-const path = require('path');
-const fs = require('fs');
+import aedes from 'aedes';
+import net from 'net';
+import http from 'http';
+import { WebSocketServer, createWebSocketStream } from 'ws';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const PORT = process.env.MQTT_PORT || 1883;
 const WS_PORT = process.env.MQTT_WS_PORT || 8084;
@@ -64,10 +67,10 @@ server.listen(PORT, () => {
 
 // Create WebSocket server
 const httpServer = http.createServer();
-const wsServer = new ws.Server({ server: httpServer });
+const wsServer = new WebSocketServer({ server: httpServer });
 
 wsServer.on('connection', (socket) => {
-  const stream = ws.createWebSocketStream(socket);
+  const stream = createWebSocketStream(socket);
   broker.handle(stream);
 });
 

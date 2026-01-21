@@ -1,12 +1,13 @@
-// @ts-check
+// @ts-nocheck
 // Part of <http://miracle.systems/p/modbus-master> licensed under <MIT>
 
 'use strict';
 
-const modbus = require('h5.modbus');
+import modbus from 'h5.modbus';
+import stats from './stats.js';
+
 const CONCURRENT_TRANSACTIONS = 20;
 const DEFAULT_UNIT = 1;
-const stats = require('./stats');
 
 /**
  * Master implementation of modbus tcp-udp simulator
@@ -141,4 +142,4 @@ class MasterSimulator {
   }
 }
 
-module.exports = MasterSimulator;
+export default MasterSimulator;

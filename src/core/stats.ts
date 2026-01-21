@@ -2,7 +2,7 @@
 
 'use strict'
 
-module.exports = {
+const stats = {
 
   startTime: Date.now(),
 
@@ -85,3 +85,5 @@ module.exports = {
   }
 
 }
+
+export default stats;

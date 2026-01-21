@@ -1,5 +1,6 @@
+// @ts-ignore - CommonJS module
 import mc from "../../src/config/master_config.js";
-import util from "../../src/utils/modbus_data_tools.js";
+import * as util from "../../src/utils/modbus_data_tools.js";
 import assert from "assert";
 
 /**
@@ -87,7 +88,7 @@ describe('Master_config', () => {
          * Tests that CheckOffsetReadWriteProperties validates property configurations
          */
         it('should validate property configuration', () => {
-            const testProp = {
+            const testProp: util.RegisterEntry = {
                 type: 'integer',
                 label: 'Test Property',
                 address: 0

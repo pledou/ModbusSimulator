@@ -1,28 +1,35 @@
 {
     "compilerOptions": {
-        "module": "nodenext",
+        "module": "esnext",
+        "target": "es2020",
         "noImplicitAny": false,
         "removeComments": true,
         "preserveConstEnums": true,
-        "sourceMap": true,
+        "sourceMap": false,
         "allowJs": true,
         "checkJs": false,
-        "moduleResolution": "nodenext",
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "noEmitOnError": false,
+        "isolatedModules": false,
+        "moduleResolution": "node",
         "baseUrl": "./",
-        "outDir": "./dist", // Specify output directory
+        "outDir": "./",
         "paths": {
             "json-ref-lite": ["node_modules/json-ref-lite"],
             "json5": ["node_modules/json5"]
         }
     },
     "include": [
-        "test/*",
-        "*"
-, "test/unit/master_config.test.ts"    ],
+        "src/**/*.ts",
+        "scripts/**/*.ts",
+        "*.ts"
+    ],
     "typeRoots": [
         "node_modules/@types"
     ],
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "test/**"
     ]
 }

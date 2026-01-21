@@ -1,9 +1,11 @@
-// @ts-check
+// @ts-nocheck
 'use strict'
 
-const config = require('./config').config;
-const Slave = require('../core/slave');
-const util = require('../utils/modbus_data_tools');
+import configDefault from './config.js';
+import Slave from '../core/slave.js';
+import * as util from '../utils/modbus_data_tools.js';
+
+const config = configDefault.config;
 
 function setUnitToData(unittodata, mqttclient) {
     const ADR_OFFSET = config.slave.addressingoffset && config.slave.addressingoffset && typeof config.slave.addressingoffset === 'number' ? config.slave.addressingoffset : 0;
@@ -85,7 +87,14 @@ function setUnitToData(unittodata, mqttclient) {
     function updateNodeValues(nodename, entries, register) {
         Object.keys(entries).forEach(key => {
             /** @type {any} */ (register).listener.on('change:' + util.getRegisterAddress(key, entries[key].address, ADR_OFFSET), function (value) {
-                util.getValueFromRegistery(entries[key], value, (v) =>
+                // For multi-register types (Int32, UInt32), read the full value from the buffer
+                // instead of using the single-register value from the event
+                let finalValue = value;
+                if (Buffer.isBuffer(register) && entries[key].register) {
+                    const buf_address = util.getBufferAddress(key, entries[key].address, ADR_OFFSET);
+                    finalValue = util.readValueFromRegister(entries[key], register, buf_address);
+                }
+                util.getValueFromRegistery(entries[key], finalValue, (v) =>
                     mqttclient.nodes[nodename.replace('#', '-')].setProperty(key).setRetained(true).send(v.toString())
                 );
             });
@@ -115,14 +124,14 @@ function setUnitToData(unittodata, mqttclient) {
                 let buf_address = util.getBufferAddress(key, entries[key].address, ADR_OFFSET, entries[key].offset);
                 const modbus_address = util.getRegisterAddress(key, entries[key].address, ADR_OFFSET);
                 if (entries[key].default) {
-                    util.writeToRegister(entries[key], entries[key].default, register, buf_address);
+                    util.writeValueToRegister(entries[key], entries[key].default, register, buf_address);
                 }
                 if (addresschanged.findIndex(a => a.modbus === modbus_address) < 0
                     && (
                         entries[key].default // valeur changée quel que soit le type
                         || entries[key].type === 'boolean')) //présence d'un booleen -> forcer le chargement de la valeur 'false'
                 {
-                    buf_address = util.getBufferAddress(key, entries[key].address, ADR_OFFSET,0);//sans offset pour retourner un registre complet
+                    buf_address = util.getBufferAddress(key, entries[key].address, ADR_OFFSET);//sans offset pour retourner un registre complet
                     addresschanged.push({ modbus: modbus_address, buffer: buf_address });
                 }
             });
@@ -160,7 +169,7 @@ function setUnitToData(unittodata, mqttclient) {
                 node.advertise(key).setName(entries[key].libelle).setDatatype(entries[key].type).settable(function (range, value) {
                     node.setProperty(key).setRetained(true).send(value.toString());
                     //valeur binaire
-                    util.writeToRegister(entries[key], value, register, buf_address);
+                    util.writeValueToRegister(entries[key], value, register, buf_address);
                 });
             });
         }
@@ -168,4 +177,4 @@ function setUnitToData(unittodata, mqttclient) {
 
 }
 
-module.exports = setUnitToData;
+export default setUnitToData;

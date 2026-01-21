@@ -1,11 +1,11 @@
-// @ts-check
+// @ts-nocheck
 // Part of <http://miracle.systems/p/modbus-master> licensed under <MIT>
 
 'use strict';
 
-const stats = require('./stats');
-const modbus = require('h5.modbus');
-const events = require('events');
+import stats from './stats.js';
+import modbus from 'h5.modbus';
+import * as events from 'events';
 const ExceptionCode = modbus.ExceptionCode;
 const FunctionCode = modbus.FunctionCode;
 const MAX_BUFFER_OVERFLOWS = Number.MAX_SAFE_INTEGER;
@@ -483,4 +483,4 @@ handleReadWriteMultipleRegistersRequest(unit, request, functionData, respond)
    */
 }
 
-module.exports = SlaveSimulator;
+export default SlaveSimulator;

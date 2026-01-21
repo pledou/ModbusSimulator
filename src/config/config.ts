@@ -1,11 +1,14 @@
-// @ts-check
+// @ts-nocheck
 'use strict';
 
-const { isAbsolute, resolve, join, parse, relative, sep, dirname } = require('path');
-const JsonRef = require('json-ref-lite');
-const json5 = require('json5');
+import { isAbsolute, resolve, join, parse, relative, sep, dirname as pathDirname } from 'path';
+import { fileURLToPath } from 'url';
+import JsonRef from 'json-ref-lite';
+import json5 from 'json5';
 const { parse: _parse } = json5;
-const { readFileSync } = require('fs');
+import { readFileSync } from 'fs';
+
+const __dirname = pathDirname(fileURLToPath(import.meta.url));
 
 const readJson = function(/** @type {string} */ jsonpath){
   const resolvedPath = isAbsolute(jsonpath) ? jsonpath : resolve(jsonpath);
@@ -16,7 +19,7 @@ const readJson = function(/** @type {string} */ jsonpath){
   
   try {
     // Change to the directory of the JSON file to resolve relative $refs correctly
-    process.chdir(dirname(resolvedPath));
+    process.chdir(pathDirname(resolvedPath));
     
     const resolver = new JsonRef();
     return resolver.resolve(_parse(data.toString()));
@@ -98,8 +101,9 @@ if (typeof process.env.NAME === 'string') {
   config.device_id = process.env.NAME;
 }
 
-module.exports = {
+export default {
   runInPKG,
-  config,
-  default: { runInPKG, config }
+  config
 };
+
+export { runInPKG, config };

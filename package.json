@@ -1,7 +1,8 @@
 {
     "name": "modbussimulator",
-    "main": "ModbusSimulator.js",
-    "bin": "ModbusSimulator.js",
+    "type": "module",
+    "main": "ModbusSimulator.ts",
+    "bin": "ModbusSimulator.ts",
     "version": "1.0.0",
     "description": "Modbus Simulator",
     "author": "Pierre Leduc",
@@ -9,14 +10,15 @@
     "readme": "readme.md",
     "scripts": {
         "test": "mocha",
-        "test:unit": "mocha test/unit/*.test.ts",
-        "test:integration": "mocha test/integration/*.test.ts",
+        "test:ci": "mocha --config .mocharc.ci.json",
+        "test:unit": "mocha test/unit/*.test.ts --config .mocharc.ci.json",
+        "test:integration": "mocha test/integration/*.test.ts --config .mocharc.ci.json",
         "test:e2e": "mocha test/e2e/*.test.ts",
-        "start:mqtt": "node scripts/mqtt-broker.js",
-        "start:slave": "node ModbusSimulator.js examples/e2e/slave-appconfig.json",
-        "start:master": "node ModbusSimulator.js examples/e2e/master-appconfig.json",
-        "start:hodd": "node scripts/hodd-server.js",
-        "build": "node scripts/build_pkg.js",
+        "start:mqtt": "bun --import=ts-node/esm scripts/mqtt-broker.ts",
+        "start:slave": "bun ModbusSimulator.ts examples/e2e/slave-appconfig.json",
+        "start:master": "bun ModbusSimulator.ts examples/e2e/master-appconfig.json",
+        "start:hodd": "bun --import=ts-node/esm scripts/hodd-server.ts",
+        "build": "bun scripts/build_pkg.ts",
         "docker-build": "docker build -t modbussimulator .",
         "docker-run": "docker run -p 502:502/udp modbussimulator"
     },
@@ -29,28 +31,14 @@
         "cpy": "^11.0.1",
         "execa": "^8.0.1",
         "mocha": "^10.8.2",
-        "pkg": "^5.8.1",
         "ts-node": "^10.9.2",
         "typescript": "^5.3.3"
     },
     "repository": {
-        "type": "svn",
-        "url": "http://ken/svn/PSD/Tools/ModbusSimulator"
+        "type": "git",
+        "url": "https://github.com/pledou/ModbusSimulator.git"
     },
-    "pkg": {
-        "targets": [
-            "node18-win-x64",
-            "node18-linux-x64"
-        ],
-        "scripts": [
-            "src/config/slave_config.js",
-            "src/config/master_config.js",
-            "./node_modules/*"
-        ],
-        "assets": [
-            "./node_modules/**/*.node"
-        ]
-    },
+
     "dependencies": {
         "aedes": "^0.51.0",
         "h5.buffers": "^0.1.1",
@@ -60,12 +48,12 @@
         "json5": "^2.2.3",
         "mqtt": "^5.3.4",
         "serialport": "^12.0.0",
+        "sync-request": "^6.1.0",
         "ws": "^8.19.0"
     },
     "engines": {
-        "node": ">=20.0.0"
+        "bun": ">=1.0.0"
     },
-    "type": "commonjs",
     "ts-node": {
         "esm": true,
         "experimentalEsm": true,

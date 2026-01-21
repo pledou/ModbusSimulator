@@ -14,6 +14,8 @@
   },
   "AO": {
     "AO-00": { "label": "Test Analog Output 1", "type": "integer", "default": 0, "register": "UInt16BE" },
-    "AO-01": { "label": "Test Analog Output 2", "type": "integer", "default": 0, "register": "UInt16BE" }
+    "AO-01": { "label": "Test Analog Output 2", "type": "integer", "default": 0, "register": "UInt16BE" },
+    "AO-INT32-00": { "label": "Test Int32 Output 1", "type": "integer", "default": 0, "register": "Int32BE", "address": 2 },
+    "AO-INT32-01": { "label": "Test Int32 Output 2", "type": "integer", "default": 0, "register": "Int32BE", "address": 4 }
   }
 }

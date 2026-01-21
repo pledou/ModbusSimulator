@@ -5,17 +5,44 @@ It is interfaced whith MQTT to publish and control data points, following the [H
 
 ## Prerequisites
 
-- Node.js (v14 or higher) - required if running from source
+**For using the standalone executable:**
+- No runtime dependencies required (standalone Bun binary)
 - For serial communication: appropriate serial port drivers
 - For MQTT integration: access to an MQTT broker
+
+**For development/building from source:**
+- [Bun](https://bun.sh/) v1.0+ (for installing dependencies and building)
+- For serial communication: appropriate serial port drivers
 
 ## Quick Start
 
 1. Download the portable executable or clone the repository
 2. Create an `appconfig.json` file in the same directory
-3. Run with: `modbussimulator-x64.exe` or `node ModbusSimulator.js`
+3. Run the standalone executable (no Node.js or Bun needed):
+   - **Windows:** `modbussimulator-win-x64.exe appconfig.json`
+   - **Linux:** `./modbussimulator-linux-x64 appconfig.json`
 
 See the [examples](examples/) directory for sample configurations.
+
+### Building from source (with Bun)
+
+To build the standalone executable from TypeScript source:
+
+```bash
+# Install dependencies
+bun install
+
+# Build standalone executables (creates Releases/modbussimulator-{win-x64,linux-x64})
+bun run build
+
+# Run the compiled binary (from Releases directory):
+cd Releases
+./modbussimulator-win-x64.exe ../examples/e2e/slave-appconfig.json
+```
+
+**Note on serialport:** The standalone binary keeps the native `serialport` module external for compatibility. When distributing the binary, ensure the `Releases/node_modules/serialport` folder is included alongside the executable, or run from the `Releases` directory after building.
+
+For Linux builds, run `bun run build` on a Linux host. For Windows, run on a Windows host.
 
 ## Parameters
 
@@ -23,17 +50,17 @@ Modbus Simulator takes a JSON configuration file as a parameter. The default con
 
 ### Launching the Tool
 
-**Using the portable executable:**
+**Using the standalone executable:**
 
 ```bash
-modbussimulator-x64.exe appconfig.json
-modbussimulator-x64.exe ./appconfig.json
+modbussimulator-win-x64.exe appconfig.json
+modbussimulator-win-x64.exe ./appconfig.json
 ```
 
-**Using Node.js from source:**
+**For development (running TypeScript directly with Bun):**
 
 ```bash
-node ModbusSimulator.js appconfig.json
+bun ModbusSimulator.ts appconfig.json
 ```
 
 Multiple configuration files can be placed in the same directory, each with a unique name. Only one file can be used by each instance of Modbus Simulator.
