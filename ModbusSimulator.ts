@@ -1,9 +1,9 @@
 // @ts-nocheck
 'use strict';
-import Master from './src/core/master.js';
-import Slave from './src/core/slave.js';
+import Master from './src/core/master.ts';
+import Slave from './src/core/slave.ts';
 // @ts-ignore - TODO: fix variable name conflict with master_config
-import configDefault from './src/config/config.js';
+import configDefault from './src/config/config.ts';
 import path from 'path';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
@@ -57,7 +57,7 @@ async function main() {
   }
 
   if (config.slave) {
-    let slave_config = (await import('./src/config/slave_config.js')).default;
+    let slave_config = (await import('./src/config/slave_config.ts')).default;
     slv = new Slave(config.slave);//initialisation de l'esclave
     if (config.slave.data) {
       slave_config(slv.UNIT_TO_DATA, mqtt_client); //appel de la config pré-définie en interne
@@ -75,7 +75,7 @@ async function main() {
     }
   }
   if (config.master) {
-    let master_config = (await import('./src/config/master_config.js')).default;
+    let master_config = (await import('./src/config/master_config.ts')).default;
     mst = new Master(config.master);
     if (config.master.requests) {
       master_config(mst, mqtt_client); //appel de la config pré-définie en interne

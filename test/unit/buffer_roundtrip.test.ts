@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import * as util from '../../src/utils/modbus_data_tools.js';
+import * as util from '../../src/utils/modbus_data_tools.ts';
 
 // Helper to perform a write/read round-trip using current address/buffer helpers
 /**

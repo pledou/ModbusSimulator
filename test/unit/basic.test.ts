@@ -1,7 +1,7 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import config from '../../src/config/config.js';
-import * as tools from '../../src/utils/modbus_data_tools.js';
+import config from '../../src/config/config.ts';
+import * as tools from '../../src/utils/modbus_data_tools.ts';
 
 /**
  * Sample unit test - tests basic functionality

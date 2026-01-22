@@ -3,7 +3,7 @@
 
 'use strict';
 
-import stats from './stats.js';
+import stats from './stats.ts';
 import modbus from 'h5.modbus';
 import * as events from 'events';
 const ExceptionCode = modbus.ExceptionCode;

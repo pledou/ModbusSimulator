@@ -235,9 +235,19 @@ export function getBitFromBuffer(register: Buffer, address: number, offset: numb
  * @returns Address number
  */
 export function getRegisterAddress(key: string, address: number | null | undefined, address_offset: number = 0): number {
-  return (address !== null && address !== undefined) 
-    ? address - address_offset 
-    : parseInt(key.replace(/[^0-9\.]/g, ''), 10) - address_offset;
+  if (address !== null && address !== undefined) {
+    return address - address_offset;
+  }
+  
+  // Extract numeric value from key (e.g., "DI-05" -> 5, "AO-100" -> 100)
+  const extracted = key.replace(/[^0-9\.]/g, '');
+  const parsed = parseInt(extracted, 10);
+  
+  if (isNaN(parsed)) {
+    throw new Error(`Cannot extract valid address from key "${key}". Keys must contain digits (e.g., "DI-01") or have an explicit "address" field.`);
+  }
+  
+  return parsed - address_offset;
 }
 
 /**

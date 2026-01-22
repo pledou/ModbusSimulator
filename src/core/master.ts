@@ -4,7 +4,7 @@
 'use strict';
 
 import modbus from 'h5.modbus';
-import stats from './stats.js';
+import stats from './stats.ts';
 
 const CONCURRENT_TRANSACTIONS = 20;
 const DEFAULT_UNIT = 1;

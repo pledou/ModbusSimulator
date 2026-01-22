@@ -1,9 +1,9 @@
 // @ts-nocheck
 'use strict'
 
-import configDefault from './config.js';
-import Slave from '../core/slave.js';
-import * as util from '../utils/modbus_data_tools.js';
+import configDefault from './config.ts';
+import Slave from '../core/slave.ts';
+import * as util from '../utils/modbus_data_tools.ts';
 
 const config = configDefault.config;
 

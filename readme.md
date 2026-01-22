@@ -107,7 +107,7 @@ Modbus Simulator has an MQTT interface to read or write states and values or cha
         //Response delay in ms
         "delay":0,
         //Optional: relative path from ModbusSimulator.exe or ModbusSimulator.js to the script defining slave behavior
-        "script":"slave_config.js",
+        "script":"slave_config.ts",
         //Optional: define addressing offset used in DO-xx DI-xx AO-xx AI-xx naming convention for MQTT advertising (default: 0)
         "addressingoffset":1,
         //Display all slave frames
@@ -195,7 +195,7 @@ Modbus Simulator has an MQTT interface to read or write states and values or cha
         //Optional: define addressing offset used in DO-xx DI-xx AO-xx AI-xx naming convention for MQTT advertising (default: 0)
         "addressingoffset":1,
         //Optional: relative path from ModbusSimulator.exe or ModbusSimulator.js to the script defining master behavior
-        "script":"master_config.js",
+        "script":"master_config.ts",
         //Display all master frames
         "debug":true,
         //Display periodic stats
@@ -261,42 +261,53 @@ If MQTT is configured and the data configuration is consistent, then all propert
 
 Custom behavior can be added via a JavaScript file (whose path is defined in the config file). The script exports a function which can update the data tables provided as arguments.
 
-```js
-'use strict'
+```typescript
+'use strict';
 
-function setUnitToData(unittodata, mqttclient) {
-    setInterval(function () {
+interface UnitData {
+    [unitId: number]: {
+        coils: number[];
+        discreteInputs: number[];
+        holdingRegisters: Buffer;
+        inputRegisters: Buffer;
+    };
+}
+
+function setUnitToData(unitToData: UnitData, mqttClient: any): void {
+    setInterval(function (this: UnitData) {
         this[0x01].coils[0] = Math.round(Math.random() * 0xFF);
-    }.bind(unittodata), 100);
-    setInterval(function () {
+    }.bind(unitToData), 100);
+
+    setInterval(function (this: UnitData) {
         this[0x01].coils[1] = Math.random() > 0.5 ? 0xFF : 0x00;
-    }.bind(unittodata), 50);
-    setInterval(function () {
-        this[0x01].coils[2] = ([0, 1, 2, 4, 8, 16, 32, 64, 128])[Math.round(Math.random() * 9)];
-    }.bind(unittodata), 33);
-    setInterval(function () {
+    }.bind(unitToData), 50);
+
+    setInterval(function (this: UnitData) {
+        this[0x01].coils[2] = [0, 1, 2, 4, 8, 16, 32, 64, 128][Math.round(Math.random() * 9)];
+    }.bind(unitToData), 33);
+
+    setInterval(function (this: UnitData) {
         this[0x01].discreteInputs[0] = Math.round(Math.random() * 0xFF);
         this[0x01].discreteInputs[1] = Math.round(Math.random() * 0xFF);
         this[0x01].discreteInputs[2] = Math.round(Math.random() * 0xFF);
-    }.bind(unittodata), 5000);
+    }.bind(unitToData), 5000);
 }
-
-module.exports = setUnitToData;
+export default setUnitToData;
 ```
 
 The Modbus data table is initialized as follows in `SlaveSimulator`:
 
-```js
-  initUnitToData() {
+```typescript
+initUnitToData() {
     this.UNIT_TO_DATA = {
-      0x01: {
-        coils: new Array(0xFFFF),
-        discreteInputs: new Array(0xFFFF),
-        holdingRegisters: Buffer.alloc(0x10000 * 2).fill(0),
-        inputRegisters: Buffer.alloc(0x10000 * 2).fill(0)
-      }
+        0x01: {
+            coils: new Array(0xFFFF),
+            discreteInputs: new Array(0xFFFF),
+            holdingRegisters: Buffer.alloc(0x10000 * 2).fill(0),
+            inputRegisters: Buffer.alloc(0x10000 * 2).fill(0)
+        }
     };
-  }
+}
 ```
 
 ### Master Behavior

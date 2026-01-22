@@ -3,43 +3,69 @@
 
 import { isAbsolute, resolve, join, parse, relative, sep, dirname as pathDirname } from 'path';
 import { fileURLToPath } from 'url';
-import { resolveRefs } from 'json-refs';
 import json5 from 'json5';
 const { parse: _parse } = json5;
 import { readFileSync } from 'fs';
 
 const __dirname = pathDirname(fileURLToPath(import.meta.url));
 
+// Custom function to resolve JSON references
+async function resolveJsonReferences(obj, basePath, resolvedDocs = {}) {
+  // If it's a $ref string, resolve it
+  if (typeof obj === 'object' && obj !== null && '$ref' in obj && !Array.isArray(obj)) {
+    const refValue = obj['$ref'];
+    
+    if (typeof refValue === 'string') {
+      // Internal reference (e.g., "#/data/DI")
+      if (refValue.startsWith('#/')) {
+        const path = refValue.substring(2).split('/');
+        let target = resolvedDocs[basePath];
+        for (const key of path) {
+          target = target?.[key];
+        }
+        if (target !== undefined) {
+          return await resolveJsonReferences(target, basePath, resolvedDocs);
+        }
+      }
+      // External reference (e.g., "./inputs_e2e.json")
+      else {
+        const refPath = isAbsolute(refValue) ? refValue : join(pathDirname(basePath), refValue);
+        if (!resolvedDocs[refPath]) {
+          const refData = readFileSync(refPath, 'utf8');
+          resolvedDocs[refPath] = _parse(refData);
+        }
+        return await resolveJsonReferences(resolvedDocs[refPath], refPath, resolvedDocs);
+      }
+    }
+  }
+  
+  // Recursively resolve references in nested objects and arrays
+  if (typeof obj === 'object' && obj !== null) {
+    if (Array.isArray(obj)) {
+      for (let i = 0; i < obj.length; i++) {
+        obj[i] = await resolveJsonReferences(obj[i], basePath, resolvedDocs);
+      }
+    } else {
+      for (const key of Object.keys(obj)) {
+        obj[key] = await resolveJsonReferences(obj[key], basePath, resolvedDocs);
+      }
+    }
+  }
+  
+  return obj;
+}
+
 const readJson = async function(/** @type {string} */ jsonpath){
   const resolvedPath = isAbsolute(jsonpath) ? jsonpath : resolve(jsonpath);
   const data = readFileSync(resolvedPath);
   
-  const fileDir = pathDirname(resolvedPath);
   const json = _parse(data.toString());
   
-  // Use json-refs to resolve all $ref values
-  const result = await resolveRefs(json, {
-    loaderOptions: {
-      processContent: function(res, callback) {
-        try {
-          // res.text contains the file content as string
-          const content = res.text || res.body || res;
-          if (typeof content === 'string') {
-            callback(null, _parse(content));
-          } else if (typeof content === 'object') {
-            callback(null, content);
-          } else {
-            callback(new Error(`Unexpected content type: ${typeof content}`));
-          }
-        } catch (err) {
-          callback(err);
-        }
-      }
-    },
-    location: resolvedPath
-  });
+  // Resolve all $ref values recursively
+  const resolvedDocs = { [resolvedPath]: json };
+  const resolved = await resolveJsonReferences(json, resolvedPath, resolvedDocs);
   
-  return result.resolved;
+  return resolved;
 };
 
 const BUN_ROOT = '~BUN';

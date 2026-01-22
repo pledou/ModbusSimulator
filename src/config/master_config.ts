@@ -31,8 +31,8 @@ const FunctionCode = {
  * @type {{ master: { interval: any; timeout: any; addressingoffset: any; requests: any[]; unit_id: number; }; mqtt: { debug: any; }; }}
  */
 // @ts-ignore - TODO: fix variable name conflict
-import configDefault from './config.js';
-import * as util from '../utils/modbus_data_tools.js';
+import configDefault from './config.ts';
+import * as util from '../utils/modbus_data_tools.ts';
 
 const config = configDefault.config;
 

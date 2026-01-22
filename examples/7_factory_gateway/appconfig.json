@@ -12,7 +12,7 @@
     },
     "delay": 0,
     "addressingoffset": 0,
-    "script": "slave_config.js",
+    "script": "slave_config.ts",
     "data": {
       "$ref": "./inputs_factory_slave.json"
     }
@@ -28,7 +28,7 @@
     "timeout": 2000,
     "concurrent_transactions": 10,
     "debug": false,
-    "script": "../../master_config.js",
+    "script": "../../master_config.ts",
     "requests": [
       {
         "label": "SCADA System Read",

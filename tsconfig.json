@@ -15,6 +15,8 @@
         "moduleResolution": "node",
         "baseUrl": "./",
         "outDir": "./",
+        "noEmit": true,
+        "allowImportingTsExtensions": true,
         "paths": {
             "json5": ["node_modules/json5"]
         }

@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import * as util from '../../src/utils/modbus_data_tools.js';
+import * as util from '../../src/utils/modbus_data_tools.ts';
 
 describe('Data Tools', () => {
   describe('writeToRegister - Range Validation', () => {

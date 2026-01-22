@@ -16,7 +16,7 @@
     },
     "delay": 100,
     "addressingoffset": 0,
-    "script": "slave_config.js"
+    "script": "slave_config.ts"
   },
   "mqtt": {
     "host": "localhost",
